@@ -1,0 +1,187 @@
+---
+title: "Bayesian template draft"
+author: "Chanda Phelan"
+date: "5/15/2018"
+output: html_document
+---
+#TODO not started!
+
+##Set up
+###Libraries
+If this is your first time using the template, you may need to install libraries. #TODO - redo this prose bit
+```{r libraries, message=FALSE, warning=FALSE}
+# knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+library(rstanarm) #TROUBLESHOOTING: if this won't unload, restart R
+library(tidyverse)
+library(tidybayes) # install.packages("tidybayes")
+library(modelr)
+library(gganimate)  # devtools::install_github("thomasp85/gganimate")
+
+theme_set(theme_light())
+
+
+#TODO: erase in final version:
+setwd('~/Dropbox/bayesian_template')
+getwd() #confirm it actually switched
+```
+
+###Prepare data
+Read in the dataset, choose your independent and dependent variables. These are the variables that will correspond to the x and y axis on the final plots. This reduces the amount of code you will have to change later in the template. (Note: Your data will need to be normally distributed for this analysis to work properly.)
+
+<span style="color:red">**What to change**</span>
+
+1. mydata: Read in your data. 
+
+2. mydata\$x, mydata\$y: Select your independent and dependent variables, i.e. which variables will appear on the x- and y-axis of your plots. 
+
+```{r data_prep}
+
+mydata <- read.csv("../stigmatized_campaigns_simulated-data.csv") #CHANGE ME
+mydata$x <- mydata$order #CHANGE ME
+mydata$y <- mydata$persuasiveness #CHANGE ME
+mydata$group <- mydata$attitude
+
+```
+
+
+## Set model
+#TODO FIX THIS
+We'll fit the following model: `stan_glm(y ~ x)`, which specifies a quadratic regression where each $y_i$ is drawn from a normal distribution with mean equal to $a + bx_i$ and standard deviation equal to `sigma` ($\sigma$):
+
+$$
+y_i \sim Normal(a + b_1x_i + b_2x^2_i, \sigma)
+$$
+###Set  priors
+In this section, you will set priors for your model. Setting priors thoughtfully is critical to any Bayesian analysis. They tell your model your best prior belief of what reasonable estimates for prior values might be. Ideally, you will have previous literature from which to draw these prior estimates. If no previous studies exist, you can instead assign "flat priors" that only minimially restrict the model; for example, a flat prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
+
+<span style="color:red">**What to change**</span>
+
+1. (Parameter priors): For each parameter, create a variable for its prior and assign the prior value to it.
+
+2. (Parameter standard deviations): As above, for each parameter, create a variable for the standard deviation of its prior and assign the sd value to it.
+
+
+```{r}
+
+# In the absence of prior literature, we use a weakly informative prior:
+# on a scale of 1-7, we assume that the mean will be 4 and that
+# any values below 1 or above 7 are extremely unlikely/impossible.
+# We assume no treament effect, but with a v wide SD 
+
+a_prior = 4
+a_sd = 0.5
+
+b1_prior = 0
+b1_sd = 1.5
+
+
+```
+
+
+`stan_glm()` will place a default prior on the standard deviation ($\sigma$); we can keep this. The main priors of interest are those on $a$ and $b$, which correspond to the intercept and slope (respectively) of the relationship between $x$ and $y$. We can set those priors using the `prior_intercept` and `prior` arguments to `stan_glm`:
+
+```{r results = "hide", message = FALSE, warning = FALSE}
+m = stan_glm(y ~ x*group, data = mydata,
+  prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
+  prior = normal(b1_prior, b1_sd, autoscale = FALSE)
+)
+
+
+```
+
+
+## Model summary
+
+Here is a summary of the model fit:
+
+```{r}
+summary(m, digits=3)
+```
+
+Given this model, we might want to plot the fit line with credible bands around it. To do that, we will first construct a *fit grid*: a data frame of points at which we want to calculate the value of the fit line from the model. The `data_grid` function allows us to do this easily, e.g. by asking for 20 equally spaced points along the value of the `x` variable in our original data:
+
+```{r}
+mydata %>% 
+  data_grid(x = seq_range(x, n = 20))
+```
+
+Given this grid, we can then draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function, and then summarize these samples in ggplot using a `stat_lineribbon`:
+
+
+```{r}
+mydata %>% 
+  data_grid(x = seq_range(x, n = 20)) %>%
+  add_fitted_draws(m_quad) %>%
+  ggplot(aes(x = x, y = .value)) +
+  stat_lineribbon() +
+  scale_fill_brewer()
+```
+
+But what we really want is to display a selection of plausible fit lines, say 100 of them. To do that, we instead ask `add_fitted_draws` for only 100 draws, which we plot separately as lines:
+
+```{r}
+mydata %>% 
+  data_grid(x = seq_range(x, n = 101)) %>%
+  # the seed argument is for reproducibility: it ensures the pseudo-random
+  # number generator used to pick draws has the same seed on every run,
+  # so that someone else can re-run this code and verify their output matches
+  add_fitted_draws(m, n = 100, seed = 12345) %>%
+  ggplot(aes(x = factor(x), y = .value)) +
+  coord_cartesian(ylim = c(0, max(mydata$y, na.rm=TRUE))) +
+  geom_line(aes(group = .draw), alpha = .2)
+```
+
+Or even better, to animate these:
+
+```{r}
+n_lines = 100
+
+p = mydata %>% 
+  data_grid(x = seq_range(x, n = 101)) %>%
+  add_fitted_draws(m, n = n_lines, seed = 12345) %>%
+  ggplot(aes(x = x, y = .value)) +
+  coord_cartesian(ylim = c(0, max(mydata$y, na.rm=TRUE))) +
+  geom_line() +
+  transition_states(.draw, transition_length = 1, state_length = 1)
+
+animate(p, nframes = n_lines * 2, fps = 10)
+```
+
+For more context, we could also show the fit lines with the data:
+
+```{r}
+animate(p + geom_count(aes(y = y), data = mydata), nframes = n_lines * 2, fps = 10)
+```
+
+## Sampling from the prior
+
+To get the prior plots, we can simply ask `stan_glm` to sample from the prior:
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+m_prior = update(m, prior_PD = TRUE)
+```
+
+Then our code to generate plots is identical, except we replace `m` with `m_prior`:
+
+```{r}
+n_lines = 100
+
+p_prior = mydata %>% 
+  data_grid(x = seq_range(x, n = 101)) %>%
+  add_fitted_draws(m_prior, n = n_lines, seed = 12345) %>%
+  ggplot(aes(x = x, y = .value)) +
+  geom_line() +
+  transition_states(.draw, transition_length = 1, state_length = 1)
+
+animate(p_prior, nframes = n_lines * 2, fps = 10)
+```
+
+
+Again, with context:
+
+```{r}
+animate(p_prior + geom_count(aes(y = y), data = mydata), nframes = n_lines * 2, fps = 10)
+```
+
+
