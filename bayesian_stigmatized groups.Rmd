@@ -20,10 +20,6 @@ library(gganimate)  # devtools::install_github("thomasp85/gganimate")
 
 theme_set(theme_light())
 
-
-#TODO: erase in final version:
-setwd('~/Dropbox/bayesian_template')
-getwd() #confirm it actually switched
 ```
 
 ###Prepare data
