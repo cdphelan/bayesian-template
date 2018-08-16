@@ -33,7 +33,7 @@ Read in the dataset, choose your independent and dependent variables. These are 
 
 ```{r data_prep}
 
-mydata <- read.csv("../stigmatized_campaigns_simulated-data.csv") #CHANGE ME
+mydata <- read.csv("stigmatized_campaigns_simulated-data.csv") #CHANGE ME
 mydata$x <- mydata$order #CHANGE ME
 mydata$y <- mydata$persuasiveness #CHANGE ME
 mydata$group <- mydata$attitude
