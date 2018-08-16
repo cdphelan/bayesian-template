@@ -20,10 +20,6 @@ library(gganimate)  # devtools::install_github("thomasp85/gganimate")
 
 theme_set(theme_light())
 
-
-#TODO: erase in final version:
-setwd('~/Dropbox/bayesian_template')
-getwd() #confirm it actually switched
 ```
 
 ###Prepare data
@@ -37,7 +33,7 @@ Read in the dataset, choose your independent and dependent variables. These are 
 
 ```{r data_prep}
 
-mydata <- read.csv("../stigmatized_campaigns_simulated-data.csv") #CHANGE ME
+mydata <- read.csv("stigmatized_campaigns_simulated-data.csv") #CHANGE ME
 mydata$x <- mydata$order #CHANGE ME
 mydata$y <- mydata$persuasiveness #CHANGE ME
 mydata$group <- mydata$attitude
@@ -99,11 +95,11 @@ Here is a summary of the model fit:
 summary(m, digits=3)
 ```
 
-Given this model, we might want to plot the fit line with credible bands around it. To do that, we will first construct a *fit grid*: a data frame of points at which we want to calculate the value of the fit line from the model. The `data_grid` function allows us to do this easily, e.g. by asking for 20 equally spaced points along the value of the `x` variable in our original data:
+Given this model, we might want to plot the fit line with credible bands around it. To do that, we will first construct a *fit grid*: a data frame of points at which we want to calculate the value of the fit line from the model. The `data_grid` function allows us to do this easily, e.g. by asking for a point corresponding to every combination of values of the `x` and `group` variables in our original data:
 
 ```{r}
 mydata %>% 
-  data_grid(x = seq_range(x, n = 20))
+  data_grid(x, group)
 ```
 
 Given this grid, we can then draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function, and then summarize these samples in ggplot using a `stat_lineribbon`:
@@ -111,39 +107,41 @@ Given this grid, we can then draw samples from the posterior mean evaluated at e
 
 ```{r}
 mydata %>% 
-  data_grid(x = seq_range(x, n = 20)) %>%
-  add_fitted_draws(m_quad) %>%
-  ggplot(aes(x = x, y = .value)) +
-  stat_lineribbon() +
-  scale_fill_brewer()
+  data_grid(x, group) %>%
+  add_fitted_draws(m) %>%
+  ggplot(aes(x = x, y = .value, fill = group, color = group)) +
+  stat_lineribbon(alpha = 1/5) +
+  coord_cartesian(ylim = c(0, max(mydata$y, na.rm=TRUE))) +
+  geom_point(aes(y = y), data = mydata, position = position_dodge(width = 0.1))
 ```
 
 But what we really want is to display a selection of plausible fit lines, say 100 of them. To do that, we instead ask `add_fitted_draws` for only 100 draws, which we plot separately as lines:
 
 ```{r}
 mydata %>% 
-  data_grid(x = seq_range(x, n = 101)) %>%
+  data_grid(x, group) %>%
   # the seed argument is for reproducibility: it ensures the pseudo-random
   # number generator used to pick draws has the same seed on every run,
   # so that someone else can re-run this code and verify their output matches
   add_fitted_draws(m, n = 100, seed = 12345) %>%
-  ggplot(aes(x = factor(x), y = .value)) +
+  ggplot(aes(x = x, y = .value, color = group)) +
   coord_cartesian(ylim = c(0, max(mydata$y, na.rm=TRUE))) +
-  geom_line(aes(group = .draw), alpha = .2)
+  geom_line(aes(group = paste(group, .draw)), alpha = .2) +
+  geom_point(aes(y = y), data = mydata, position = position_dodge(width = 0.1))
 ```
 
 Or even better, to animate these:
 
 ```{r}
-n_lines = 100
+n_lines = 100  # number of lines we want to show
 
-p = mydata %>% 
-  data_grid(x = seq_range(x, n = 101)) %>%
+p <- mydata %>%
+  data_grid(x, group) %>%
   add_fitted_draws(m, n = n_lines, seed = 12345) %>%
-  ggplot(aes(x = x, y = .value)) +
-  coord_cartesian(ylim = c(0, max(mydata$y, na.rm=TRUE))) +
+  ggplot(aes(x = x, y = .value, col = group, group = group)) +
   geom_line() +
-  transition_states(.draw, transition_length = 1, state_length = 1)
+  transition_states(.draw, transition_length = 1, state_length = 1) +
+  coord_cartesian(ylim = c(0, max(mydata$y, na.rm = TRUE)))
 
 animate(p, nframes = n_lines * 2, fps = 10)
 ```
@@ -151,7 +149,10 @@ animate(p, nframes = n_lines * 2, fps = 10)
 For more context, we could also show the fit lines with the data:
 
 ```{r}
-animate(p + geom_count(aes(y = y), data = mydata), nframes = n_lines * 2, fps = 10)
+animate(
+  p + geom_point(aes(y = y), data = mydata, position = position_dodge(width = 0.1)),
+  nframes = n_lines * 2, fps = 10
+)
 ```
 
 ## Sampling from the prior
