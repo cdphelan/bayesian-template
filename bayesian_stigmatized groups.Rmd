@@ -95,11 +95,11 @@ Here is a summary of the model fit:
 summary(m, digits=3)
 ```
 
-Given this model, we might want to plot the fit line with credible bands around it. To do that, we will first construct a *fit grid*: a data frame of points at which we want to calculate the value of the fit line from the model. The `data_grid` function allows us to do this easily, e.g. by asking for 20 equally spaced points along the value of the `x` variable in our original data:
+Given this model, we might want to plot the fit line with credible bands around it. To do that, we will first construct a *fit grid*: a data frame of points at which we want to calculate the value of the fit line from the model. The `data_grid` function allows us to do this easily, e.g. by asking for a point corresponding to every value of the `x` variable in our original data:
 
 ```{r}
 mydata %>% 
-  data_grid(x = seq_range(x, n = 20))
+  data_grid(x)
 ```
 
 Given this grid, we can then draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function, and then summarize these samples in ggplot using a `stat_lineribbon`:
