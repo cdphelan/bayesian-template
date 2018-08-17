@@ -1,0 +1,255 @@
+---
+title: "Bayesian template: bar chart without groups"
+author: "Chanda Phelan"
+date: "5/15/2018"
+output: html_document
+---
+
+##Introduction
+TODO Chanda: update/extend this intro according to meeting notes
+Welcome! This template will guide you through a Bayesian analysis in R. With some basic familiarity with R, this template will help you complete a Bayesian analysis, even if you have never done Bayesian analysis before. Once complete, this template will produce a summary of the analysis, complete with patameter estimates and credible intervals, and two animated HOPS plots (see TKTK for more information) for both your prior and posterior estimates. 
+
+To complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading "What you need to change" in red), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
+
+Good luck!
+
+##Set up
+###Libraries
+If this is your first time using the template, you may need to install libraries. Uncomment the lines below - install.packages() and devtools::install_github() - to install the required packages. This only needs to be done once. 
+```{r libraries, message=FALSE, warning=FALSE}
+
+# install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
+# devtools::install_github("thomasp85/gganimate")
+
+library(rstanarm) 
+library(tidyverse)
+library(tidybayes)
+library(modelr)
+library(gganimate)  
+
+```
+
+###Prepare data
+Read in the dataset, choose your independent and dependent variables. These are the variables that will correspond to the x and y axis on the final plots. Note: This template requires your data to be normally distributed. The templates currently do not support non-normal data.
+
+<span style="color:red">**What to change**</span>
+
+1. mydata: Read in your data. 
+
+2. mydata\$x, mydata\$y: Select which variables will appear on the x- and y-axis of your plots. 
+
+```{r data_prep}
+
+mydata = read.csv("../feel-the-movement_simulated-data.csv") #CHANGE ME
+mydata$x = mydata$tlx_scale #CHANGE ME
+mydata$y = mydata$value #CHANGE ME
+
+#this dataset is more fun but takes much longer to run, even with a 10-country subset
+# mydata = read.csv("../lab-in-the-wild_subset.csv") #CHANGE ME
+# mydata$x = mydata$country #CHANGE ME
+# mydata$y = mydata$colorfulnessScore #CHANGE ME
+
+```
+
+
+### Graph aesthetics
+
+You can set the aesthetics of your graphs here. 
+
+<span style="color:red">**What to change**</span>
+
+1. x_lab & y_lab: Label your x- and y-axes.
+
+In most cases, the other default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here; just be sure to keep the lines that are commented with "do not change."
+
+```{r graph_aesthetics}
+theme_set(theme_light()) # set the ggplot theme for all plots 
+
+# label the axes on the plots
+x_lab = "TLX Categories" #CHANGE ME
+y_lab = "Score" #CHANGE ME
+
+# the default code for the plots - if needed, the animated plot aesthetics can be customized here
+graph_plot <- function(data) {
+  ggplot(data, aes(x = x, y = .value)) + #do not change
+    geom_bar(stat='identity') + #do not change
+    transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
+    # coord_cartesian(ylim = c(0, 10)) + # sets the limits for the axes #TODO - is this ever needed?
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
+    labs(x=x_lab, y=y_lab) # axes labels
+}
+
+# Animation parameters
+n_draws = 30 # the number of draws to visualize in the HOPS plots
+frames_per_second = 5 # the speed of the HOPS plots
+#TODO Jessica: is there an established best value for the speed of HOPS frames?
+
+```
+
+## Set model
+We'll fit the following model: `stan_glm(y ~ x)`. As $x$ is a categorical variable in this template, this specifies a linear regression with dummy variables for each factor in $x$. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three factors, each $y_i$ is drawn from a normal distribution with mean equal to $a + b_1dummy_1 + b_2dummy_2$ and standard deviation equal to `sigma` ($\sigma$): 
+
+
+$$
+y_i \sim Normal(a + b_1dummy_1 + b_2dummy_2, \sigma)
+$$
+
+### Set  priors
+In this section, you will set priors for your model. Setting priors thoughtfully is critical to any Bayesian analysis. They tell your model your best prior belief of what reasonable estimates for prior values might be. Ideally, you will have previous literature from which to draw these prior estimates. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
+
+To check the plausibility of your priors, use the code section after this one to generate a graph of five sample draws from your priors to check if the values generated are reasonable.
+
+<span style="color:red">**What to change**</span>
+
+1. (Parameter means): For each parameter, assign a mean prior value. This template currently only supports setting one prior mean and SD that are used across all factors.
+
+2. (Parameter standard deviations): As above, for each parameter, assign a value for the standard deviation of its prior.
+
+
+```{r}
+
+# In the absence of prior literature, we use a weakly informative prior:
+# on a scale of 0-100, we assume that the mean will be 50 and that
+# any values below 0 or above 100 are extremely unlikely.
+# We assume all factors will have the same mean, but with a v wide SD 
+# TODO - Matt/Jessica: is this right? 
+
+a_prior = 50
+a_sd = 25
+
+b1_prior = 0
+b1_sd = 25
+
+```
+
+
+### Check priors
+
+Next, you'll want to check your priors by running this code chunk. It will produce a set of five sample plots drawn from the priors you set in the previous section, so you can check to see if the values generated are reasonable. (We'll go into the details of this code later.) 
+
+What is "reasonable" depends on what you know about the expected values *before* looking at the data from the study. If you do not have previous studies to help set these priors, it is usually best to set *weakly informative* priors with large standard deviations that only make the very extreme and impossible values unlikely. If you have previous literature to use as a guide in setting priors, you can use the mean estimate SD from that paper to assign a narrower prior distribution. 
+
+<span style="color:red">**What to change**</span>
+
+Nothing! Just run this code to check your priors, adjusting prior values above as needed until you find reasonable prior values. 
+
+```{r check_priors, results="hide"}
+
+#generate sample draws from the priors
+m_prior = stan_glm(y ~ x, data = mydata,
+  prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
+  prior = normal(b1_prior, b1_sd, autoscale = FALSE),
+  prior_PD = TRUE
+)
+
+#create the dataframe for fitted draws & plot the five sample draws
+mydata %>%
+  data_grid(x) %>%
+  add_fitted_draws(m_prior, n = 5, seed = 12345) %>%
+  ggplot(aes(x = x, y = .value)) +
+  geom_bar(stat='identity') +
+  facet_grid(cols = vars(.draw)) +
+  #coord_cartesian(ylim = c(min(fit$.value), max(fit$.value))) + #TODO - is this ever needed?
+  theme(strip.background = element_blank(), 
+        strip.text.y = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(x=x_lab, y=y_lab) + # axes labels 
+  ggtitle("Five sample draws from the priors") 
+
+```
+
+### Run the model
+`stan_glm()` will place a default prior on the standard deviation ($\sigma$); we can keep this. The main priors of interest are those on $a$ and $b$. We can set those priors using the `prior_intercept` and `prior` arguments to `stan_glm`:
+
+```{r results = "hide", message = FALSE, warning = FALSE}
+
+m = stan_glm(y ~ x, data = mydata,
+  prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
+  prior = normal(b1_prior, b1_sd, autoscale = FALSE)
+)
+
+```
+
+
+## Model summary
+Here is a summary of the model fit:
+
+```{r}
+summary(m, digits=3)
+```
+
+
+## Visualizing results
+To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. In this case, we have a simple fit grid: we only need to calculate a value for each factor of the categorical variable $x$ in our original data. The `data_grid` function allows us to do this easily:
+
+```{r}
+mydata %>% 
+  data_grid(x)
+```
+
+Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent +1/-1 standard deviation. For each x position in the fit grid, we can get the posterior mean estimates and standard deviations from the model:
+
+```{r}
+
+#TODO Matt(?) - there must be a better way to do this. 
+fit = mydata %>% 
+      data_grid(x) %>%
+      cbind(mean=m$coefficients[1]+m$coefficients) %>% #get mean estimates by adding intercept + coefficients
+      cbind(sd=m$ses) 
+fit$mean[1] = m$coefficients[1] #replace the estimate for intercept, as above code doubles it
+
+ggplot(fit, aes(x = x, y = mean)) +
+    geom_bar(stat='identity') +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2) +
+    labs(x=x_lab, y=y_lab)
+
+#TODO Matt: this graph should be fit and not mydata, right? 
+#The SDs from the model are much smaller than those from below
+#for the "feel the movement" dataset, the below code produces a result that looks more similar to the published graph
+
+# ggplot(mydata, aes(x = x, y = y)) + 
+#     stat_summary(fun.y = mean, geom = "bar") + 
+#     stat_summary(fun.data = mean_sdl, geom = "errorbar", width=.2)
+
+```
+
+Even better would be to animate this graph and make it a HOPs plot (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty in a way that has been demonstrated to be more intuitively understandable compared to traditional visualization methods like error bars. 
+
+Returning to our fit grid, we can repeatedly draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function. Each frame of the animation shows a different draw from the posterior: 
+
+```{r}
+
+p <- mydata %>% #pipe mydata to datagrid()
+  data_grid(x) %>% #create a fit grid with each factor in x, and pipe it to add_fitted_draws()
+  add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid 
+
+#animate the data from p, using the graph aesthetics set in the graph aesthetics code chunk
+animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second) 
+
+```
+
+
+## Sampling from the prior
+
+To get the prior plots, we can simply ask `stan_glm` to sample from the prior. If you are knitting this document, or if you already ran the code in the "Check priors" section that calculates m_prior, you can comment out this line:
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+#m_prior = update(m, prior_PD = TRUE)
+```
+
+Then our code to generate plots is identical, except we replace `m` with `m_prior`:
+
+```{r}
+
+p_prior = mydata %>% 
+  data_grid(x) %>%
+  add_fitted_draws(m_prior, n = n_draws, seed = 12345)
+
+animate(graph_plot(p_prior), nframes = n_draws * 2, fps = frames_per_second)
+
+```
+
+
+
+
