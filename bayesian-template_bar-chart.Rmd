@@ -40,12 +40,12 @@ Read in the dataset, choose your independent and dependent variables. These are 
 
 ```{r data_prep}
 
-mydata = read.csv("../feel-the-movement_simulated-data.csv") #CHANGE ME
+mydata = read.csv("datasets/feel-the-movement_simulated-data.csv") #CHANGE ME
 mydata$x = mydata$tlx_scale #CHANGE ME
 mydata$y = mydata$value #CHANGE ME
 
 #this dataset is more fun but takes much longer to run, even with a 10-country subset
-# mydata = read.csv("../lab-in-the-wild_subset.csv") #CHANGE ME
+# mydata = read.csv("lab-in-the-wild_subset.csv") #CHANGE ME
 # mydata$x = mydata$country #CHANGE ME
 # mydata$y = mydata$colorfulnessScore #CHANGE ME
 
