@@ -7,7 +7,7 @@ output: html_document
 
 ##Introduction
 TODO Chanda: update/extend this intro according to meeting notes
-Welcome! This template will guide you through a Bayesian analysis in R. With some basic familiarity with R, this template will help you complete a Bayesian analysis, even if you have never done Bayesian analysis before. Once complete, this template will produce a summary of the analysis, complete with patameter estimates and credible intervals, and two animated HOPS plots (see TKTK for more information) for both your prior and posterior estimates. 
+Welcome! This template will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with patameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates. 
 
 To complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading "What you need to change" in red), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
 
@@ -80,14 +80,17 @@ graph_plot <- function(data) {
 }
 
 # Animation parameters
-n_draws = 30 # the number of draws to visualize in the HOPS plots
-frames_per_second = 5 # the speed of the HOPS plots
-#TODO Jessica: is there an established best value for the speed of HOPS frames?
+n_draws = 30 # the number of draws to visualize in the HOPs plots
+frames_per_second = 2.5 # the speed of the HOPs
+# 2.5 frames per second (400ms) is the recommended speed for the HOPs visualization.
+# Faster speeds (100ms) have been demonstrated to not work as well.
+# See Kale et al. VIS 2018 for more info.
 
 ```
 
+
 ## Set model
-We'll fit the following model: `stan_glm(y ~ x)`. As $x$ is a categorical variable in this template, this specifies a linear regression with dummy variables for each factor in $x$. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three factors, each $y_i$ is drawn from a normal distribution with mean equal to $a + b_1dummy_1 + b_2dummy_2$ and standard deviation equal to `sigma` ($\sigma$): 
+We'll fit the following model: `stan_glm(y ~ x)`. As $x$ is a categorical variable in this template, this specifies a linear regression with dummy variables for each level in categorical variable $x$. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + b_1dummy_1 + b_2dummy_2$ and standard deviation equal to `sigma` ($\sigma$): 
 
 
 $$
@@ -101,7 +104,7 @@ To check the plausibility of your priors, use the code section after this one to
 
 <span style="color:red">**What to change**</span>
 
-1. (Parameter means): For each parameter, assign a mean prior value. This template currently only supports setting one prior mean and SD that are used across all factors.
+1. (Parameter means): For each parameter, assign a mean prior value. This template currently only supports setting one prior mean and SD that are used across all levels of the factor.
 
 2. (Parameter standard deviations): As above, for each parameter, assign a value for the standard deviation of its prior.
 
@@ -111,8 +114,7 @@ To check the plausibility of your priors, use the code section after this one to
 # In the absence of prior literature, we use a weakly informative prior:
 # on a scale of 0-100, we assume that the mean will be 50 and that
 # any values below 0 or above 100 are extremely unlikely.
-# We assume all factors will have the same mean, but with a v wide SD 
-# TODO - Matt/Jessica: is this right? 
+# We assume all levels will have the same mean, but with a v wide SD 
 
 a_prior = 50
 a_sd = 25
@@ -181,7 +183,7 @@ summary(m, digits=3)
 
 
 ## Visualizing results
-To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. In this case, we have a simple fit grid: we only need to calculate a value for each factor of the categorical variable $x$ in our original data. The `data_grid` function allows us to do this easily:
+To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. In this case, we have a simple fit grid: we only need to calculate a value for each level of the categorical variable $x$ in our original data. The `data_grid` function allows us to do this easily:
 
 ```{r}
 mydata %>% 
@@ -214,14 +216,14 @@ ggplot(fit, aes(x = x, y = mean)) +
 
 ```
 
-Even better would be to animate this graph and make it a HOPs plot (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty in a way that has been demonstrated to be more intuitively understandable compared to traditional visualization methods like error bars. 
+Even better would be to animate this graph using HOPs (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty as sets of draws from a distribution, which has been demonstrated to improve multivariate probability estimates (Hullman et al. 2015) and increase sensitivity to the underlying trend in data (Kale et al. 2018) over static representations of uncertainty like error bars. 
 
 Returning to our fit grid, we can repeatedly draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function. Each frame of the animation shows a different draw from the posterior: 
 
 ```{r}
 
 p <- mydata %>% #pipe mydata to datagrid()
-  data_grid(x) %>% #create a fit grid with each factor in x, and pipe it to add_fitted_draws()
+  data_grid(x) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
   add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid 
 
 #animate the data from p, using the graph aesthetics set in the graph aesthetics code chunk
