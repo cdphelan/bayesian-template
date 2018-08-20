@@ -1,5 +1,5 @@
 ---
-title: "Bayesian template: bar chart without groups"
+title: "Bayesian template draft bar chart with groups"
 author: "Chanda Phelan"
 date: "5/15/2018"
 output: html_document
@@ -13,19 +13,20 @@ This Bayesian analysis focuses on producing results in a form that are easily in
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
 
-1. **Simple bar chart (e.g. t-tests, one-way ANOVA)**
+1. Simple bar chart (e.g. t-tests, one-way ANOVA)
 
-2. Bar chart with groups (e.g. two-way ANOVA)
+2. **Bar chart with groups (e.g. two-way ANOVA)**
 
 3. Line graph (e.g. regressions)
 
 TODO Chanda: finish this list once the template list is finalized
 
-This template will produce a **simple bar chart**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
+This template will produce a **bar chart with groups**. If your analysis includes a **two-way ANOVA**, this might be the right template for you.
 
 Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
 
 Good luck!
+
 
 ##Set up
 ###Libraries
@@ -52,19 +53,16 @@ Read in the dataset, choose your independent and dependent variables. These are 
 
 2. mydata\$x, mydata\$y: Select which variables will appear on the x- and y-axis of your plots. 
 
+3. mydata\$group: Select which variable indicates groups in your data (e.g. experimental condition).
+
 ```{r data_prep}
 
 mydata = read.csv("datasets/feel-the-movement_simulated-data.csv") #CHANGE ME
 mydata$x = mydata$tlx_scale #CHANGE ME
 mydata$y = mydata$value #CHANGE ME
-
-#this dataset is more fun but takes much longer to run, even with a 10-country subset
-# mydata = read.csv("lab-in-the-wild_subset.csv") #CHANGE ME
-# mydata$x = mydata$country #CHANGE ME
-# mydata$y = mydata$colorfulnessScore #CHANGE ME
+mydata$group <- mydata$motion #CHANGE ME
 
 ```
-
 
 ### Graph aesthetics
 
@@ -85,8 +83,8 @@ y_lab = "Score" #CHANGE ME
 
 # the default code for the plots - if needed, the animated plot aesthetics can be customized here
 graph_plot <- function(data) {
-  ggplot(data, aes(x = x, y = .value)) + #do not change
-    geom_bar(stat='identity') + #do not change
+  ggplot(data, aes(x = x, y = .value, col = group, fill = group, group = group)) + #do not change
+    geom_bar(stat='identity', position='dodge') + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
     # coord_cartesian(ylim = c(0, 10)) + # sets the limits for the axes #TODO - is this ever needed?
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
@@ -102,13 +100,13 @@ frames_per_second = 2.5 # the speed of the HOPs
 
 ```
 
-
 ## Set model
-We'll fit the following model: `stan_glm(y ~ x)`. As $x$ is a categorical variable in this template, this specifies a linear regression with dummy variables for each level in categorical variable $x$. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + b_1dummy_1 + b_2dummy_2$ and standard deviation equal to `sigma` ($\sigma$): 
+TODO FIX THIS
+We'll fit the following model: `stan_glm(y ~ x * group)`, where both $x$ and `group` are categorical variables. This specifies a linear regression with dummy variables for each level in $x$, and in each level in `group`, plus interaction terms for each combination of $x$ and `group`. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + ...$ and standard deviation equal to `sigma` ($\sigma$): 
 
 
 $$
-y_i \sim Normal(a + b_1dummy_1 + b_2dummy_2, \sigma)
+y_i \sim Normal(a + b_{x1}dummy_{x1} + b_{x2}dummy_{x2} + b_{group1}dummy_{group1} + b_{group1}dummy_{group1} * b_{x1}dummy_{x1} +   b_{group1}dummy_{group1} * b_{x2}dummy_{x2}, \sigma)
 $$
 
 ### Set  priors
@@ -136,6 +134,8 @@ a_sd = 25
 b1_prior = 0
 b1_sd = 25
 
+
+
 ```
 
 
@@ -152,7 +152,7 @@ Nothing! Just run this code to check your priors, adjusting prior values above a
 ```{r check_priors, results="hide"}
 
 #generate sample draws from the priors
-m_prior = stan_glm(y ~ x, data = mydata,
+m_prior = stan_glm(y ~ x*group, data = mydata,
   prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
   prior = normal(b1_prior, b1_sd, autoscale = FALSE),
   prior_PD = TRUE
@@ -160,10 +160,10 @@ m_prior = stan_glm(y ~ x, data = mydata,
 
 #create the dataframe for fitted draws & plot the five sample draws
 mydata %>%
-  data_grid(x) %>%
+  data_grid(x,group) %>%
   add_fitted_draws(m_prior, n = 5, seed = 12345) %>%
-  ggplot(aes(x = x, y = .value)) +
-  geom_bar(stat='identity') +
+  ggplot(aes(x = x, y = .value, col = group, fill = group, group = group)) +
+  geom_bar(stat='identity', position='dodge') +
   facet_grid(cols = vars(.draw)) +
   #coord_cartesian(ylim = c(min(fit$.value), max(fit$.value))) + #TODO - is this ever needed?
   theme(strip.background = element_blank(), 
@@ -176,11 +176,11 @@ mydata %>%
 ```
 
 ### Run the model
+
 `stan_glm()` will place a default prior on the standard deviation ($\sigma$); we can keep this. The main priors of interest are those on $a$ and $b$. We can set those priors using the `prior_intercept` and `prior` arguments to `stan_glm`:
 
 ```{r results = "hide", message = FALSE, warning = FALSE}
-
-m = stan_glm(y ~ x, data = mydata,
+m = stan_glm(y ~ x*group, data = mydata,
   prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
   prior = normal(b1_prior, b1_sd, autoscale = FALSE)
 )
@@ -195,38 +195,19 @@ Here is a summary of the model fit:
 summary(m, digits=3)
 ```
 
-
 ## Visualizing results
-To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. In this case, we have a simple fit grid: we only need to calculate a value for each level of the categorical variable $x$ in our original data. The `data_grid` function allows us to do this easily:
+To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. The `data_grid` function allows us to do this easily, e.g. by asking for a point corresponding to every combination of values of the `x` and `group` variables in our original data:
 
 ```{r}
 mydata %>% 
-  data_grid(x)
+  data_grid(x, group)
 ```
 
 Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent +1/-1 standard deviation. For each x position in the fit grid, we can get the posterior mean estimates and standard deviations from the model:
 
 ```{r}
-
-#TODO Matt(?) - there must be a better way to do this. 
-fit = mydata %>% 
-      data_grid(x) %>%
-      cbind(mean=m$coefficients[1]+m$coefficients) %>% #get mean estimates by adding intercept + coefficients
-      cbind(sd=m$ses) 
-fit$mean[1] = m$coefficients[1] #replace the estimate for intercept, as above code doubles it
-
-ggplot(fit, aes(x = x, y = mean)) +
-    geom_bar(stat='identity') +
-    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2) +
-    labs(x=x_lab, y=y_lab)
-
-#TODO Matt: this graph should be fit and not mydata, right? 
-#The SDs from the model are much smaller than those from below
-#for the "feel the movement" dataset, the below code produces a result that looks more similar to the published graph
-
-# ggplot(mydata, aes(x = x, y = y)) + 
-#     stat_summary(fun.y = mean, geom = "bar") + 
-#     stat_summary(fun.data = mean_sdl, geom = "errorbar", width=.2)
+#TODO CHANDA - THIS IS ALL BROKEN.
+#Come back to this once Matt has looked at the simple bar chart - he might have a solution that will transfer easily to this
 
 ```
 
@@ -237,7 +218,7 @@ Returning to our fit grid, we can repeatedly draw samples from the posterior mea
 ```{r}
 
 p <- mydata %>% #pipe mydata to datagrid()
-  data_grid(x) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
+  data_grid(x, group) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
   add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid 
 
 #animate the data from p, using the graph aesthetics set in the graph aesthetics code chunk
@@ -259,13 +240,11 @@ Then our code to generate plots is identical, except we replace `m` with `m_prio
 ```{r}
 
 p_prior = mydata %>% 
-  data_grid(x) %>%
+  data_grid(x, group) %>%
   add_fitted_draws(m_prior, n = n_draws, seed = 12345)
 
 animate(graph_plot(p_prior), nframes = n_draws * 2, fps = frames_per_second)
 
-```
-
-
+````
 
 
