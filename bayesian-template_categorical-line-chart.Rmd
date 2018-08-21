@@ -1,5 +1,5 @@
 ---
-title: "Bayesian template: bar chart without groups"
+title: "Bayesian template: categorical line chart without groups"
 author: "Chanda Phelan"
 date: "5/15/2018"
 output: html_document
@@ -13,9 +13,9 @@ This Bayesian analysis focuses on producing results in a form that are easily in
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
 
-1. **Simple bar chart** (e.g. t-tests, one-way ANOVA)
+1. Simple bar chart (e.g. t-tests, one-way ANOVA)
 
-2. Simple line chart, categorical independent variable (e.g. t-tests, one-way ANOVA)
+2. **Simple line chart, categorical independent variable** (e.g. t-tests, one-way ANOVA)
 
 3. Bar chart with groups (e.g. two-way ANOVA)
 
@@ -25,7 +25,7 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 TODO Chanda: finish this list once the template list is finalized
 
-This template will produce a **simple bar chart**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
+This template will produce a **simple line chart** for data with a **categorical independent variable**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
 
 Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
 
@@ -93,8 +93,9 @@ y_lab = "Score" #CHANGE ME
 
 # the default code for the plots - if needed, the animated plot aesthetics can be customized here
 graph_plot <- function(data) {
-  ggplot(data, aes(x = x, y = .value)) + #do not change
-    geom_bar(stat='identity') + #do not change
+  ggplot(data, aes(x = x, y = .value, group=.draw)) + #do not change
+    geom_line() + #do not change
+    geom_point() +
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
     # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
@@ -171,8 +172,9 @@ m_prior = stan_glm(y ~ x, data = mydata,
 mydata %>%
   data_grid(x) %>%
   add_fitted_draws(m_prior, n = 5, seed = 12345) %>%
-  ggplot(aes(x = x, y = .value)) +
-  geom_bar(stat='identity') +
+  ggplot(aes(x = x, y = .value, group=.draw)) +
+  geom_line() +
+  geom_point() +
   facet_grid(cols = vars(.draw)) +
   # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
   theme(strip.background = element_blank(), 
@@ -224,9 +226,11 @@ fit = mydata %>%
       cbind(sd=m$ses) 
 fit$mean[1] = m$coefficients[1] #replace the estimate for intercept, as above code doubles it
 
+#TODO - this doesn't draw the lines bc there's only one observation each? 
 ggplot(fit, aes(x = x, y = mean)) +
-    geom_bar(stat='identity') +
-    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2) +
+    geom_line() +
+    geom_point() +
+    #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2) +
     labs(x=x_lab, y=y_lab)
 
 #TODO Matt: this graph should be fit and not mydata, right? 

@@ -15,11 +15,13 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 1. Simple bar chart (e.g. t-tests, one-way ANOVA)
 
-2. Bar chart with groups (e.g. two-way ANOVA)
+2. Simple line chart, categorical independent variable (e.g. t-tests, one-way ANOVA)
 
-3. Line chart with groups (e.g. two-way ANOVA)
+3. Bar chart with groups (e.g. two-way ANOVA)
 
-4. **Linear regression**
+4. Line chart with groups, categorical independent variable (e.g. two-way ANOVA)
+
+5. **Linear regression**
 
 TODO Chanda: finish this list once the template list is finalized
 
