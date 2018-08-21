@@ -17,7 +17,7 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 2. Bar chart with groups (e.g. two-way ANOVA)
 
-3. Line graph (e.g. regressions)
+3. Linear regression
 
 TODO Chanda: finish this list once the template list is finalized
 
@@ -74,6 +74,8 @@ You can set the aesthetics of your graphs here.
 
 1. x_lab & y_lab: Label your x- and y-axes.
 
+2. [Optional] coord_cartesian(ylim = ...): Depending on your data, you may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
+
 In most cases, the other default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here; just be sure to keep the lines that are commented with "do not change."
 
 ```{r graph_aesthetics}
@@ -88,7 +90,7 @@ graph_plot <- function(data) {
   ggplot(data, aes(x = x, y = .value)) + #do not change
     geom_bar(stat='identity') + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    # coord_cartesian(ylim = c(0, 10)) + # sets the limits for the axes #TODO - is this ever needed?
+    # coord_cartesian(ylim = c(0, 10)) + # CHANGE ME - sets the limits for the axes manually if necessary 
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
     labs(x=x_lab, y=y_lab) # axes labels
 }

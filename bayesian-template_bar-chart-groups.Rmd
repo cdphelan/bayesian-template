@@ -17,7 +17,7 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 2. **Bar chart with groups (e.g. two-way ANOVA)**
 
-3. Line graph (e.g. regressions)
+3. Linear regression
 
 TODO Chanda: finish this list once the template list is finalized
 
@@ -72,6 +72,8 @@ You can set the aesthetics of your graphs here.
 
 1. x_lab & y_lab: Label your x- and y-axes.
 
+2. [Optional] coord_cartesian(ylim = ...): Depending on your data, you may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
+
 In most cases, the other default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here; just be sure to keep the lines that are commented with "do not change."
 
 ```{r graph_aesthetics}
@@ -86,7 +88,7 @@ graph_plot <- function(data) {
   ggplot(data, aes(x = x, y = .value, col = group, fill = group, group = group)) + #do not change
     geom_bar(stat='identity', position='dodge') + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    # coord_cartesian(ylim = c(0, 10)) + # sets the limits for the axes #TODO - is this ever needed?
+    # coord_cartesian(ylim = c(0, 10)) + # CHANGE ME - sets the limits for the axes manually if necessary 
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
     labs(x=x_lab, y=y_lab) # axes labels
 }
@@ -101,7 +103,9 @@ frames_per_second = 2.5 # the speed of the HOPs
 ```
 
 ## Set model
-TODO FIX THIS
+
+TODO anybody: not sure this is the right way to explain the model, it's looking kind of complicated and hard to follow. thoughts?
+
 We'll fit the following model: `stan_glm(y ~ x * group)`, where both $x$ and `group` are categorical variables. This specifies a linear regression with dummy variables for each level in $x$, and in each level in `group`, plus interaction terms for each combination of $x$ and `group`. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + ...$ and standard deviation equal to `sigma` ($\sigma$): 
 
 
