@@ -17,7 +17,9 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 2. **Bar chart with groups (e.g. two-way ANOVA)**
 
-3. Linear regression
+3. Line chart with groups (e.g. two-way ANOVA)
+
+4. Linear regression
 
 TODO Chanda: finish this list once the template list is finalized
 
@@ -33,6 +35,8 @@ Good luck!
 If this is your first time using the template, you may need to install libraries. Uncomment the lines below - install.packages() and devtools::install_github() - to install the required packages. This only needs to be done once. 
 ```{r libraries, message=FALSE, warning=FALSE}
 
+knitr::opts_chunk$set(cache = TRUE)
+
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
@@ -43,6 +47,7 @@ library(modelr)
 library(gganimate)  
 
 ```
+
 
 ###Prepare data
 Read in the dataset, choose your independent and dependent variables. These are the variables that will correspond to the x and y axis on the final plots. Note: This template requires your data to be normally distributed. The templates currently do not support non-normal data.
@@ -64,8 +69,8 @@ mydata$group <- mydata$motion #CHANGE ME
 
 ```
 
-### Graph aesthetics
 
+### Graph aesthetics
 You can set the aesthetics of your graphs here. 
 
 <span style="color:red">**What to change**</span>
@@ -77,6 +82,7 @@ You can set the aesthetics of your graphs here.
 In most cases, the other default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here; just be sure to keep the lines that are commented with "do not change."
 
 ```{r graph_aesthetics}
+
 theme_set(theme_light()) # set the ggplot theme for all plots 
 
 # label the axes on the plots
@@ -88,8 +94,9 @@ graph_plot <- function(data) {
   ggplot(data, aes(x = x, y = .value, col = group, fill = group, group = group)) + #do not change
     geom_bar(stat='identity', position='dodge') + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    # coord_cartesian(ylim = c(0, 10)) + # CHANGE ME - sets the limits for the axes manually if necessary 
+    # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
+    # scale_x_discrete(limits=c("before","after")) + #manually set the order of the x-axis levels
     labs(x=x_lab, y=y_lab) # axes labels
 }
 
@@ -102,8 +109,8 @@ frames_per_second = 2.5 # the speed of the HOPs
 
 ```
 
-## Set model
 
+## Set model
 TODO anybody: not sure this is the right way to explain the model, it's looking kind of complicated and hard to follow. thoughts?
 
 We'll fit the following model: `stan_glm(y ~ x * group)`, where both $x$ and `group` are categorical variables. This specifies a linear regression with dummy variables for each level in $x$, and in each level in `group`, plus interaction terms for each combination of $x$ and `group`. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + ...$ and standard deviation equal to `sigma` ($\sigma$): 
@@ -112,6 +119,7 @@ We'll fit the following model: `stan_glm(y ~ x * group)`, where both $x$ and `gr
 $$
 y_i \sim Normal(a + b_{x1}dummy_{x1} + b_{x2}dummy_{x2} + b_{group1}dummy_{group1} + b_{group1}dummy_{group1} * b_{x1}dummy_{x1} +   b_{group1}dummy_{group1} * b_{x2}dummy_{x2}, \sigma)
 $$
+
 
 ### Set  priors
 In this section, you will set priors for your model. Setting priors thoughtfully is critical to any Bayesian analysis. They tell your model your best prior belief of what reasonable estimates for prior values might be. Ideally, you will have previous literature from which to draw these prior estimates. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
@@ -123,7 +131,6 @@ To check the plausibility of your priors, use the code section after this one to
 1. (Parameter means): For each parameter, assign a mean prior value. This template currently only supports setting the intercept parameter (overall mean/DF) and one additional prior mean and SD that are used across all levels of the factor.
 
 2. (Parameter standard deviations): As above, for each parameter, assign a value for the standard deviation of its prior.
-
 
 ```{r}
 
@@ -138,13 +145,10 @@ a_sd = 25
 b1_prior = 0
 b1_sd = 25
 
-
-
 ```
 
 
 ### Check priors
-
 Next, you'll want to check your priors by running this code chunk. It will produce a set of five sample plots drawn from the priors you set in the previous section, so you can check to see if the values generated are reasonable. (We'll go into the details of this code later.) 
 
 What is "reasonable" depends on what you know about the expected values *before* looking at the data from the study. If you do not have previous studies to help set these priors, it is usually best to set *weakly informative* priors with large standard deviations that only make the very extreme and impossible values unlikely. If you have previous literature to use as a guide in setting priors, you can use the mean estimate SD from that paper to assign a narrower prior distribution. 
@@ -169,7 +173,7 @@ mydata %>%
   ggplot(aes(x = x, y = .value, col = group, fill = group, group = group)) +
   geom_bar(stat='identity', position='dodge') +
   facet_grid(cols = vars(.draw)) +
-  #coord_cartesian(ylim = c(min(fit$.value), max(fit$.value))) + #TODO - is this ever needed?
+  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
   theme(strip.background = element_blank(), 
         strip.text.y = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -179,11 +183,12 @@ mydata %>%
 
 ```
 
-### Run the model
 
+### Run the model
 `stan_glm()` will place a default prior on the standard deviation ($\sigma$); we can keep this. The main priors of interest are those on $a$ and $b$. We can set those priors using the `prior_intercept` and `prior` arguments to `stan_glm`:
 
 ```{r results = "hide", message = FALSE, warning = FALSE}
+
 m = stan_glm(y ~ x*group, data = mydata,
   prior_intercept = normal(a_prior, a_sd, autoscale = FALSE),
   prior = normal(b1_prior, b1_sd, autoscale = FALSE)
@@ -198,6 +203,7 @@ Here is a summary of the model fit:
 ```{r}
 summary(m, digits=3)
 ```
+
 
 ## Visualizing results
 To plot the results, we will first construct a *fit grid*: a data frame of points at which we want to calculate a value from the model. The `data_grid` function allows us to do this easily, e.g. by asking for a point corresponding to every combination of values of the `x` and `group` variables in our original data:
@@ -224,6 +230,9 @@ Returning to our fit grid, we can repeatedly draw samples from the posterior mea
 p <- mydata %>% #pipe mydata to datagrid()
   data_grid(x, group) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
   add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid 
+  # the seed argument is for reproducibility: it ensures the pseudo-random
+  # number generator used to pick draws has the same seed on every run,
+  # so that someone else can re-run this code and verify their output matches
 
 #animate the data from p, using the graph aesthetics set in the graph aesthetics code chunk
 animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second) 
@@ -232,7 +241,6 @@ animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second)
 
 
 ## Sampling from the prior
-
 We already looked at some sample plots of the priors when we were setting priors; now we want to look at these priors again, but in a HOPs format so we can compare to the posterior plots. To get the prior plots, we can simply ask `stan_glm` to sample from the prior. If you are knitting this document, or if you already ran the code in the "Check priors" section that calculates m_prior, you can comment out this line:
 
 ```{r, results = "hide", message = FALSE, warning = FALSE}
@@ -240,7 +248,6 @@ We already looked at some sample plots of the priors when we were setting priors
 ```
 
 Then our code to generate plots is identical, except we replace `m` with `m_prior`:
-
 ```{r}
 
 p_prior = mydata %>% 
@@ -249,6 +256,6 @@ p_prior = mydata %>%
 
 animate(graph_plot(p_prior), nframes = n_draws * 2, fps = frames_per_second)
 
-````
+```
 
 

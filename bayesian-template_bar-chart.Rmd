@@ -17,7 +17,9 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 2. Bar chart with groups (e.g. two-way ANOVA)
 
-3. Linear regression
+3. Line chart with groups (e.g. two-way ANOVA)
+
+4. Linear regression
 
 TODO Chanda: finish this list once the template list is finalized
 
@@ -31,6 +33,8 @@ Good luck!
 ###Libraries
 If this is your first time using the template, you may need to install libraries. Uncomment the lines below - install.packages() and devtools::install_github() - to install the required packages. This only needs to be done once. 
 ```{r libraries, message=FALSE, warning=FALSE}
+
+knitr::opts_chunk$set(cache = TRUE)
 
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
@@ -90,8 +94,9 @@ graph_plot <- function(data) {
   ggplot(data, aes(x = x, y = .value)) + #do not change
     geom_bar(stat='identity') + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    # coord_cartesian(ylim = c(0, 10)) + # CHANGE ME - sets the limits for the axes manually if necessary 
+    # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
+    # scale_x_discrete(limits=c("before","after")) + #manually set the order of the x-axis levels
     labs(x=x_lab, y=y_lab) # axes labels
 }
 
@@ -167,7 +172,7 @@ mydata %>%
   ggplot(aes(x = x, y = .value)) +
   geom_bar(stat='identity') +
   facet_grid(cols = vars(.draw)) +
-  #coord_cartesian(ylim = c(min(fit$.value), max(fit$.value))) + #TODO - is this ever needed?
+  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
   theme(strip.background = element_blank(), 
         strip.text.y = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -240,7 +245,10 @@ Returning to our fit grid, we can repeatedly draw samples from the posterior mea
 
 p <- mydata %>% #pipe mydata to datagrid()
   data_grid(x) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
-  add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid 
+  add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid
+  # the seed argument is for reproducibility: it ensures the pseudo-random
+  # number generator used to pick draws has the same seed on every run,
+  # so that someone else can re-run this code and verify their output matches
 
 #animate the data from p, using the graph aesthetics set in the graph aesthetics code chunk
 animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second) 

@@ -17,7 +17,9 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 2. Bar chart with groups (e.g. two-way ANOVA)
 
-3. **Linear regression**
+3. Line chart with groups (e.g. two-way ANOVA)
+
+4. **Linear regression**
 
 TODO Chanda: finish this list once the template list is finalized
 
@@ -32,6 +34,8 @@ Good luck!
 ###Libraries
 If this is your first time using the template, you may need to install libraries. Uncomment the lines below - install.packages() and devtools::install_github() - to install the required packages. This only needs to be done once. 
 ```{r libraries, message=FALSE, warning=FALSE}
+
+knitr::opts_chunk$set(cache = TRUE)
 
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
@@ -86,7 +90,7 @@ graph_plot <- function(data) {
   ggplot(data, aes(x = x, y = .value)) + #do not change
     geom_line() + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    coord_cartesian(ylim = c(min(mydata$y), max(mydata$y))) + # CHANGE ME - sets the limits for the axes manually if necessary 
+    coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
     labs(x=x_lab, y=y_lab) # axes labels
 }
 
@@ -109,7 +113,7 @@ $$
 ###Set  priors
 In this section, you will set priors for your model. Setting priors thoughtfully is critical to any Bayesian analysis. They tell your model your best prior belief of what reasonable estimates for prior values might be. Ideally, you will have previous literature from which to draw these prior estimates. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
 
-To check the plausibility of your priors, use the code section after this one to generate a graph of five sample draws from your priors to check if the values generated are reasonable.
+To check the plausibility of your priors, use the code section after this one to generate a graph of 100 plausible fit lines from your priors to check if the values generated are reasonable.
 
 <span style="color:red">**What to change**</span>
 
@@ -205,7 +209,7 @@ mydata %>%
   add_fitted_draws(m) %>%
   ggplot(aes(x = x, y = .value)) +
   stat_lineribbon() +
-  #coord_cartesian(ylim = c(min(mydata$y), max(mydata$y)) + # CHANGE ME - sets the limits for the axes manually if necessary 
+  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
   scale_fill_brewer()
 
 ```
@@ -220,7 +224,7 @@ mydata %>%
   # so that someone else can re-run this code and verify their output matches
   add_fitted_draws(m, n = 100, seed = 12345) %>%
   ggplot(aes(x = x, y = .value)) +
-  #coord_cartesian(ylim = c(min(mydata$y), max(mydata$y))) + # CHANGE ME - sets the limits for the axes manually if necessary 
+  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
   geom_line(aes(group = .draw), alpha = .2)
 
 ```
@@ -232,6 +236,9 @@ Or even better, to animate these:
 p = mydata %>% 
   data_grid(x = seq_range(x, n = 101)) %>%
   add_fitted_draws(m, n = n_draws, seed = 12345) 
+  # the seed argument is for reproducibility: it ensures the pseudo-random
+  # number generator used to pick draws has the same seed on every run,
+  # so that someone else can re-run this code and verify their output matches
 
 animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second)
 
