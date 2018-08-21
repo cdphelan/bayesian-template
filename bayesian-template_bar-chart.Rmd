@@ -121,29 +121,53 @@ y_i \sim Normal(a + b_1dummy_1 + b_2dummy_2, \sigma)
 $$
 
 ### Set  priors
-In this section, you will set priors for your model. Setting priors thoughtfully is critical to any Bayesian analysis. They tell your model your best prior belief of what reasonable estimates for prior values might be. Ideally, you will have previous literature from which to draw these prior estimates. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
+In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, before seeing any data, of reasonable values for the model parameters. The model estimation process produces a posterior distribution, beliefs about the plausible values for parameters, given the data in your dataset.
+
+Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
 
 To check the plausibility of your priors, use the code section after this one to generate a graph of five sample draws from your priors to check if the values generated are reasonable.
 
+Our model has the following parameters:
+a. the overall mean y-value across all levels of categorical variable x
+b. the mean y-value for each of the individual levels
+c. the standard deviation of the normally distributed error term
+
+To simplify things when ther are more than two levels for the x-variable, we limit the number of different prior beliefs you can have for the means at different x-levels. Think of the first level of the categorical variable as specifying the control condition of an experiment, and all of the other levels being treatment conditions in the experiment. We let you specify a prior belief about the plausible values of mean in the control condition, and then we let you set a prior belief about the plausible effect size. You have to specify the same plausible effect sizes for all conditions, unless you dig deeper into our code than the few spots we've told you to change.
+
+To simplify things further, we only let you specify beliefs about these parameters in the form of a normal distribution. Thus, you will specify what you think is the most likely value for the parameter (the mean), and a standard deviation. You will be expressing a belief that you were 95% certain (before looking at any data) that the true value of the parameter is within two standard deviations of the mean.
+
+Finally, our modeling system, STAN, will automatically set priors for last parameter, the standard deviation of the normally distributed error term. That is almost never a model parameter that you will be interpreting, and STAN does a reasonable job of assigning weakly informative priors for that parameter in a way that it won't have an impact on the estimation of other parameters, which we normally do care about.
+
 <span style="color:red">**What to change**</span>
 
-1. (Parameter means): For each parameter, assign a mean prior value. This template currently only supports setting the intercept parameter (overall mean/DF) and one additional prior mean and SD that are used across all levels of the factor.
+4. Control condition mean.
 
-2. (Parameter standard deviations): As above, for each parameter, assign a value for the standard deviation of its prior.
+5. Control condition standard deviation 
 
+6. Effect size mean. 
+
+7. Effect size standard deviation.
 
 ```{r}
 
-# In the absence of prior literature, we use a weakly informative prior:
-# on a scale of 0-100, we assume that the mean will be 50 and that
-# any values below 0 or above 100 are extremely unlikely.
-# We assume all levels will have the same mean, but with a v wide SD 
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS
+# In our example dataset, y-axis scores can be in the range [0, 100].
+# Thus, a mean value in the control condition of less than 0 or greater
+# than 100 is impossible. With a normal distribution, we can't completely
+# rule out those impossible values, but we choose a mean and sd that assign
+# less than 5% probability to those impossible values.
 
-a_prior = 50
-a_sd = 25
+a_prior = 50  # CHANGE ME 4
+a_sd = 25     # CHANGE ME 5
 
-b1_prior = 0
-b1_sd = 25
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS
+# In our example dataset, we do not have a strong hypothesis that the treatment 
+# conditions will be higher or lower than the control, so we set the mean of
+# the effect size parameters to be 0. In the absence of other information, we
+# set the sd to be the same as for the control condition.
+
+b1_prior = 0  # CHANGE ME 6
+b1_sd = 25    # CHANGE ME 7
 
 ```
 
@@ -152,11 +176,9 @@ b1_sd = 25
 
 Next, you'll want to check your priors by running this code chunk. It will produce a set of five sample plots drawn from the priors you set in the previous section, so you can check to see if the values generated are reasonable. (We'll go into the details of this code later.) 
 
-What is "reasonable" depends on what you know about the expected values *before* looking at the data from the study. If you do not have previous studies to help set these priors, it is usually best to set *weakly informative* priors with large standard deviations that only make the very extreme and impossible values unlikely. If you have previous literature to use as a guide in setting priors, you can use the mean estimate SD from that paper to assign a narrower prior distribution. 
-
 <span style="color:red">**What to change**</span>
 
-Nothing! Just run this code to check your priors, adjusting prior values above as needed until you find reasonable prior values. 
+Nothing! Just run this code to check your priors, adjusting prior values above as needed until you find reasonable prior values. Note that you may get a couple of very implausible or even impossible values because our assumption of normally distributed priors assigns a small probability to even very extreme values. If you are concerned by the outcome, you can try rerunning it a few more times to make sure that any implausible values you see don't come up very often.
 
 ```{r check_priors, results="hide"}
 
@@ -185,7 +207,8 @@ mydata %>%
 ```
 
 ### Run the model
-`stan_glm()` will place a default prior on the standard deviation ($\sigma$); we can keep this. The main priors of interest are those on $a$ and $b$. We can set those priors using the `prior_intercept` and `prior` arguments to `stan_glm`:
+
+There's nothing you have to change here. Just run the model.
 
 ```{r results = "hide", message = FALSE, warning = FALSE}
 
