@@ -1,5 +1,5 @@
 ---
-title: "Bayesian template: bar chart without groups"
+title: "Bayesian template: bar chart, 1 categorical independent var"
 author: "Chanda Phelan"
 date: "5/15/2018"
 output: html_document
@@ -8,7 +8,6 @@ output: html_document
 ##Introduction
 Welcome! This template will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
 
-TODO Paul: we discussed putting in a v small section about why we want to use Bayesian analysis - is this already too long? 
 This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. THe Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs plots, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
@@ -27,13 +26,17 @@ TODO Chanda: finish this list once the template list is finalized
 
 This template will produce a **simple bar chart**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
 
+Note that this template fits your data to a model that assumes normally distributed error terms. (This is the same assumption underlying t-tests, ANOVA, etc.) This template requires you to have already run diagnostics to determine that your data is consistent with this assumption; if you have not, the results may not be valid. 
+
 Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
 
 Good luck!
 
+
 ##Set up
 ###Libraries
 If this is your first time using the template, you may need to install libraries. Uncomment the lines below - install.packages() and devtools::install_github() - to install the required packages. This only needs to be done once. 
+
 ```{r libraries, message=FALSE, warning=FALSE}
 
 knitr::opts_chunk$set(cache = TRUE)
@@ -47,81 +50,57 @@ library(tidybayes)
 library(modelr)
 library(gganimate)  
 
+theme_set(theme_light()) # set the ggplot theme for all plots 
+
 ```
 
-###Prepare data
-Read in the dataset, choose your independent and dependent variables. These are the variables that will correspond to the x and y axis on the final plots. Note: This template requires your data to be normally distributed. The templates currently do not support non-normal data.
 
+###Read in data
 <span style="color:red">**What to change**</span>
 
 1. mydata: Read in your data. 
 
-2. mydata\$x, mydata\$y: Select which variables will appear on the x- and y-axis of your plots. 
-
 ```{r data_prep}
 
-mydata = read.csv("datasets/feel-the-movement_simulated-data.csv") #CHANGE ME
-mydata$x = mydata$tlx_scale #CHANGE ME
-mydata$y = mydata$value #CHANGE ME
-
-#this dataset is more fun but takes much longer to run, even with a 10-country subset
-# mydata = read.csv("lab-in-the-wild_subset.csv") #CHANGE ME
-# mydata$x = mydata$country #CHANGE ME
-# mydata$y = mydata$colorfulnessScore #CHANGE ME
+mydata = read.csv("datasets/feel-the-movement_simulated-data.csv") #CHANGE ME 1
 
 ```
 
 
-### Graph aesthetics
-
-You can set the aesthetics of your graphs here. 
-
-<span style="color:red">**What to change**</span>
-
-1. x_lab & y_lab: Label your x- and y-axes.
-
-2. [Optional] coord_cartesian(ylim = ...): Depending on your data, you may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
-
-In most cases, the other default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here; just be sure to keep the lines that are commented with "do not change."
-
-```{r graph_aesthetics}
-theme_set(theme_light()) # set the ggplot theme for all plots 
-
-# label the axes on the plots
-x_lab = "TLX Categories" #CHANGE ME
-y_lab = "Score" #CHANGE ME
-
-# the default code for the plots - if needed, the animated plot aesthetics can be customized here
-graph_plot <- function(data) {
-  ggplot(data, aes(x = x, y = .value)) + #do not change
-    geom_bar(stat='identity') + #do not change
-    transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
-    # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
-    # scale_x_discrete(limits=c("before","after")) + #manually set the order of the x-axis levels
-    labs(x=x_lab, y=y_lab) # axes labels
-}
-
-# Animation parameters
-n_draws = 100 # the number of draws to visualize in the HOPs plots
-frames_per_second = 2.5 # the speed of the HOPs
-# 2.5 frames per second (400ms) is the recommended speed for the HOPs visualization.
-# Faster speeds (100ms) have been demonstrated to not work as well.
-# See Kale et al. VIS 2018 for more info.
-
-```
-
-
-## Set model
+## Specify model
 We'll fit the following model: `stan_glm(y ~ x)`. As $x$ is a categorical variable in this template, this specifies a linear regression with dummy variables for each level in categorical variable $x$. **This is equivalent to ANOVA.** So for example, for a regression where $x$ has three levels, each $y_i$ is drawn from a normal distribution with mean equal to $a + b_1dummy_1 + b_2dummy_2$ and standard deviation equal to `sigma` ($\sigma$): 
-
 
 $$
 y_i \sim Normal(a + b_1dummy_1 + b_2dummy_2, \sigma)
 $$
 
+Choose your independent and dependent variables. These are the variables that will correspond to the x and y axis on the final plots. 
+
+<span style="color:red">**What to change**</span>
+
+2. mydata\$x: Select which variables will appear on the x-axis of your plots. 
+
+3. mydata\$y: Select which variables will appear on the y-axis of your plots. 
+
+4. x_lab: Label your plots' x-axes.
+
+5. y_lab: Label your plots' y-axes.
+
+```{r specify_model}
+
+#select your independent and dependent variable
+mydata$x = mydata$tlx_scale #CHANGE ME 2
+mydata$y = mydata$value #CHANGE ME 3
+
+# label the axes on the plots
+x_lab = "TLX Categories" #CHANGE ME 4
+y_lab = "Score" #CHANGE ME 5
+
+```
+
+
 ### Set  priors
-In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, before seeing any data, of reasonable values for the model parameters. The model estimation process produces a posterior distribution, beliefs about the plausible values for parameters, given the data in your dataset.
+In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, before seeing any data, of reasonable values for the model parameters. The model estimation process produces a posterior distribution: beliefs about the plausible values for parameters, given the data in your dataset.
 
 Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
 
@@ -132,48 +111,49 @@ a. the overall mean y-value across all levels of categorical variable x
 b. the mean y-value for each of the individual levels
 c. the standard deviation of the normally distributed error term
 
-To simplify things when ther are more than two levels for the x-variable, we limit the number of different prior beliefs you can have for the means at different x-levels. Think of the first level of the categorical variable as specifying the control condition of an experiment, and all of the other levels being treatment conditions in the experiment. We let you specify a prior belief about the plausible values of mean in the control condition, and then we let you set a prior belief about the plausible effect size. You have to specify the same plausible effect sizes for all conditions, unless you dig deeper into our code than the few spots we've told you to change.
+To simplify things when there are more than two levels for the x-variable, we limit the number of different prior beliefs you can have for the means at different x-levels. Think of the first level of the categorical variable as specifying the control condition of an experiment, and all of the other levels being treatment conditions in the experiment. We let you specify a prior belief about the plausible values of mean in the control condition, and then we let you set a prior belief about the plausible effect size. You have to specify the same plausible effect sizes for all conditions, unless you dig deeper into our code than the few spots we've told you to change.
 
 To simplify things further, we only let you specify beliefs about these parameters in the form of a normal distribution. Thus, you will specify what you think is the most likely value for the parameter (the mean), and a standard deviation. You will be expressing a belief that you were 95% certain (before looking at any data) that the true value of the parameter is within two standard deviations of the mean.
 
-Finally, our modeling system, STAN, will automatically set priors for last parameter, the standard deviation of the normally distributed error term. That is almost never a model parameter that you will be interpreting, and STAN does a reasonable job of assigning weakly informative priors for that parameter in a way that it won't have an impact on the estimation of other parameters, which we normally do care about.
+Finally, our modeling system, `stan_glm()`, will automatically set priors for the last parameter, the standard deviation of the normally distributed error term for the model overall. That is almost never a model parameter that you will be interpreting, and STAN does a reasonable job of assigning weakly informative priors for that parameter in a way that it won't have an impact on the estimation of other parameters, which we normally do care about.
 
 <span style="color:red">**What to change**</span>
 
-4. Control condition mean.
+6. a_prior: Select the control condition mean.
 
-5. Control condition standard deviation 
+7. a_sd: Select the control condition standard deviation.
 
-6. Effect size mean. 
+8. b1_prior: Select the effect size mean. 
 
-7. Effect size standard deviation.
+9. b1_sd: Select the effect size standard deviation.
+
+10. You should also change the comments in the code below to explain your choice of priors.
 
 ```{r}
 
-# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
 # In our example dataset, y-axis scores can be in the range [0, 100].
 # Thus, a mean value in the control condition of less than 0 or greater
 # than 100 is impossible. With a normal distribution, we can't completely
 # rule out those impossible values, but we choose a mean and sd that assign
 # less than 5% probability to those impossible values.
 
-a_prior = 50  # CHANGE ME 4
-a_sd = 25     # CHANGE ME 5
+a_prior = 50  # CHANGE ME 6
+a_sd = 25     # CHANGE ME 7
 
-# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
 # In our example dataset, we do not have a strong hypothesis that the treatment 
 # conditions will be higher or lower than the control, so we set the mean of
 # the effect size parameters to be 0. In the absence of other information, we
 # set the sd to be the same as for the control condition.
 
-b1_prior = 0  # CHANGE ME 6
-b1_sd = 25    # CHANGE ME 7
+b1_prior = 0  # CHANGE ME 8
+b1_sd = 25    # CHANGE ME 9
 
 ```
 
 
 ### Check priors
-
 Next, you'll want to check your priors by running this code chunk. It will produce a set of five sample plots drawn from the priors you set in the previous section, so you can check to see if the values generated are reasonable. (We'll go into the details of this code later.) 
 
 <span style="color:red">**What to change**</span>
@@ -196,7 +176,7 @@ mydata %>%
   ggplot(aes(x = x, y = .value)) +
   geom_bar(stat='identity') +
   facet_grid(cols = vars(.draw)) +
-  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME (optional)
+  # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits
   theme(strip.background = element_blank(), 
         strip.text.y = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -207,7 +187,6 @@ mydata %>%
 ```
 
 ### Run the model
-
 There's nothing you have to change here. Just run the model.
 
 ```{r results = "hide", message = FALSE, warning = FALSE}
@@ -264,11 +243,45 @@ ggplot(fit, aes(x = x, y = mean)) +
 
 Even better would be to animate this graph using HOPs (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty as sets of draws from a distribution, which has been demonstrated to improve multivariate probability estimates (Hullman et al. 2015) and increase sensitivity to the underlying trend in data (Kale et al. 2018) over static representations of uncertainty like error bars. 
 
-Returning to our fit grid, we can repeatedly draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function. Each frame of the animation shows a different draw from the posterior: 
+To set up the HOPs plots, we will first set the aesthetics for the ggplot that we will use. 
+
+### Plot aesthetics
+You can set the aesthetics of your HOPs plots here.
+
+<span style="color:red">**What to change**</span>
+In most cases, the default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here using the ggplot2 package; just be sure to keep the lines that are commented with "do not change." Below are two optional code customizations that we think may be particularly useful for some datasets.
+
+11. [Optional] coord_cartesian(ylim = ...): You may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
+
+12. [Optional] scale_x_discrete(limits = ...): You may want to manually set the order of the x-axis levels; for example, if you have levels "before" and "after," ggplot defaults often plot "after" on the left and "before" on the right. If so, uncomment this line in the code below and set your preferred level order. The names of the levels must match what is in your dataset. 
+
+```{r graph_aesthetics}
+
+# the default code for the plots - if needed, the animated plot aesthetics can be customized here
+graph_plot = function(data) {
+  ggplot(data, aes(x = x, y = .value)) + #do not change
+    geom_bar(stat='identity') + #do not change
+    transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
+    # coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME 11 (optional)
+    # scale_x_discrete(limits=c("before","after")) + #manually set the order of the x-axis levels - CHANGE ME 12 (optional)
+    labs(x=x_lab, y=y_lab) # axes labels
+}
+
+# Animation parameters
+n_draws = 100 # the number of draws to visualize in the HOPs plots
+frames_per_second = 2.5 # the speed of the HOPs
+# 2.5 frames per second (400ms) is the recommended speed for the HOPs visualization.
+# Faster speeds (100ms) have been demonstrated to not work as well.
+# See Kale et al. VIS 2018 for more info.
+
+```
+
+Now that the plot aesthetics are set, we can return to our fit grid and repeatedly draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function. Each frame of the animation shows a different draw from the posterior: 
 
 ```{r}
 
-p <- mydata %>% #pipe mydata to datagrid()
+p = mydata %>% #pipe mydata to datagrid()
   data_grid(x) %>% #create a fit grid with each level in x, and pipe it to add_fitted_draws()
   add_fitted_draws(m, n = n_draws, seed = 12345) #add n fitted draws from the model to the fit grid
   # the seed argument is for reproducibility: it ensures the pseudo-random
@@ -282,7 +295,6 @@ animate(graph_plot(p), nframes = n_draws * 2, fps = frames_per_second)
 
 
 ## Sampling from the prior
-
 We already looked at some sample plots of the priors when we were setting priors; now we want to look at these priors again, but in a HOPs format so we can compare to the posterior plots. To get the prior plots, we can simply ask `stan_glm` to sample from the prior. If you are knitting this document, or if you already ran the code in the "Check priors" section that calculates m_prior, you can comment out this line:
 
 ```{r, results = "hide", message = FALSE, warning = FALSE}
@@ -300,7 +312,3 @@ p_prior = mydata %>%
 animate(graph_plot(p_prior), nframes = n_draws * 2, fps = frames_per_second)
 
 ```
-
-
-
-
