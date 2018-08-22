@@ -1,34 +1,40 @@
 ---
-title: "Bayesian template: bar chart, 1 categorical independent var"
-author: "Chanda Phelan"
-date: "5/15/2018"
+title: "Bayesian template for single categorical independent variable (bar graph)"
+author: "Phelan, C., Hullman, J., Kay, M. & Resnick, P."
 output: html_document
 ---
 
 ##Introduction
+TODO CHANDA: Add heading with bar chart graph, add thumbnails of the charts in the list of templates below.
+
 Welcome! This template will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
 
-This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. THe Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs plots, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
+This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs plots, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
 
-1. **Simple bar chart** (e.g. t-tests, one-way ANOVA)
+*One independent variable:*
 
-2. Simple line chart, categorical independent variable (e.g. t-tests, one-way ANOVA)
+1. **Categorical, bar graph (e.g. t-tests, one-way ANOVA)**
 
-3. Bar chart with groups (e.g. two-way ANOVA)
+2. Ordinal, line graph (e.g. t-tests, one-way ANOVA)
 
-4. Line chart with groups, categorical independent variable (e.g. two-way ANOVA)
+3. Continuous, line graph (e.g. linear regression)
 
-5. Linear regression
+*Two independent variables:*
 
-TODO Chanda: finish this list once the template list is finalized
+4. Two categorical, bar graph (e.g. two-way ANOVA)
 
-This template will produce a **simple bar chart**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
+5. Two categorical, line graph (e.g. two-way ANOVA)
+
+6. One categorical, one continuous (e.g. linear regression with multiple lines)
+
+
+This template is for data with a **single categorical independent variable** and will produce a **bar chart**. If your analysis includes a **t-test** or **one-way ANOVA**, this might be the right template for you.
 
 Note that this template fits your data to a model that assumes normally distributed error terms. (This is the same assumption underlying t-tests, ANOVA, etc.) This template requires you to have already run diagnostics to determine that your data is consistent with this assumption; if you have not, the results may not be valid. 
 
-Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. 
+Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. You can run each code chunk independently during debugging; when you're finished, you can knit the document to produce the complete document.
 
 Good luck!
 
@@ -39,16 +45,17 @@ If this is your first time using the template, you may need to install libraries
 
 ```{r libraries, message=FALSE, warning=FALSE}
 
-knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(cache = TRUE) #cache results of code chunks to speed up repeated knitting
 
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
-library(rstanarm) 
-library(tidyverse)
-library(tidybayes)
-library(modelr)
-library(gganimate)  
+library(rstanarm) #bayesian analysis package
+library(tidyverse) #tidy datascience commands
+library(tidybayes) #tidy data + ggplot workflow
+library(modelr) #tidy pipelines when modelling
+library(ggplot2) #plotting package
+library(gganimate) #animate ggplots
 
 theme_set(theme_light()) # set the ggplot theme for all plots 
 
@@ -102,7 +109,7 @@ y_lab = "Score" #CHANGE ME 5
 ### Set  priors
 In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, before seeing any data, of reasonable values for the model parameters. The model estimation process produces a posterior distribution: beliefs about the plausible values for parameters, given the data in your dataset.
 
-Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimially restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
+Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimally restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
 
 To check the plausibility of your priors, use the code section after this one to generate a graph of five sample draws from your priors to check if the values generated are reasonable.
 
@@ -217,9 +224,10 @@ mydata %>%
 
 Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent +1/-1 standard deviation. For each x position in the fit grid, we can get the posterior mean estimates and standard deviations from the model:
 
-```{r}
+```{r static_graph}
 
 #TODO Matt(?) - there must be a better way to do this. 
+#this hacky way of doing it doesn't work as a solution for any template that uses the ggplot group aesthetic.
 fit = mydata %>% 
       data_grid(x) %>%
       cbind(mean=m$coefficients[1]+m$coefficients) %>% #get mean estimates by adding intercept + coefficients
@@ -249,6 +257,7 @@ To set up the HOPs plots, we will first set the aesthetics for the ggplot that w
 You can set the aesthetics of your HOPs plots here.
 
 <span style="color:red">**What to change**</span>
+
 In most cases, the default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here using the ggplot2 package; just be sure to keep the lines that are commented with "do not change." Below are two optional code customizations that we think may be particularly useful for some datasets.
 
 11. [Optional] coord_cartesian(ylim = ...): You may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
