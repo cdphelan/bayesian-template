@@ -3,28 +3,31 @@
 
 ## One independent variable
 
-**Categorical**: 
+**1) Categorical**: 
     
-    bayesian-template_bar-chart.Rmd
+    1var-categorical-bar-bayesian_template.Rmd (old: bayesian-template_bar-chart.Rmd)
     
-**Ordinal**: 
+**2) Ordinal**: 
     
-    bayesian-template_categorical-line-chart.Rmd
+    1var-ordinal-line-bayesian_template.html.Rmd
     
-**Continuous**: 
+**3) Continuous**: 
     
-    bayesian_template-linear.Rmd
+    1var-continuous-line-bayesian_template.Rmd
 
 
 ## Two independent variables
 
-**Two categorical**:
- 
-    - Bar chart: bayesian-template_bar-chart-groups.Rmd  
-    - Line chart: bayesian_template_line-groups.Rmd
+**4) Two categorical**:
 
-**One categorical, one continuous**:
+	2var-categorical-bar-bayesian_template.Rmd
+
+**5) One categorical, one ordinal**:
+
+	2var-categorical_ordinal-line-bayesian_template.Rmd
+
+**6) One categorical, one continuous**:
     
-    Line chart: TBA
+    2var-continuous_categorical-line-bayesian_template.Rmd
 
 

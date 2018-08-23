@@ -4,15 +4,3 @@
 .Rproj*
 .Rproj.user
 .DS_Store
-bayesian-template_bar-chart-groups_cache/
-bayesian-template_bar-chart-groups_files/
-bayesian-template_bar-chart_cache/
-bayesian-template_bar-chart_files/
-bayesian-template_categorical-line-chart_cache/
-bayesian-template_categorical-line-chart_files/
-bayesian_template-linear-categorical_cache/
-bayesian_template-linear-categorical_files/
-bayesian_template-linear_cache/
-bayesian_template-linear_files/
-bayesian_template_line-groups_cache/
-bayesian_template_line-groups_files/
