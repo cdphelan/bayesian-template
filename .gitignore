@@ -4,3 +4,15 @@
 .Rproj*
 .Rproj.user
 .DS_Store
+1var-categorical-bar-bayesian_template_cache/
+1var-categorical-bar-bayesian_template_files/
+1var-continuous-line-bayesian_template_cache/
+1var-continuous-line-bayesian_template_files/
+1var-ordinal-line-bayesian_template.html_cache/
+1var-ordinal-line-bayesian_template.html_files/
+2var-categorical-bar-bayesian_template_cache/
+2var-categorical-bar-bayesian_template_files/
+2var-categorical_ordinal-line-bayesian_template_cache/
+2var-categorical_ordinal-line-bayesian_template_files/
+2var-continuous_categorical-line-bayesian_template_cache/
+2var-continuous_categorical-line-bayesian_template_files/

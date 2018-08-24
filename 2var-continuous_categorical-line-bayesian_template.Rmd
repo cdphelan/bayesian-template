@@ -1,13 +1,23 @@
 ---
-title: "Bayesian template for two independent variables, one continuous and one categorical (line graph)"
-author: "Phelan, C., Hullman, J., Kay, M. & Resnick, P."
-output: html_document
+title: <center>Bayesian analysis template</center>
+author: <center>Phelan, C., Hullman, J., Kay, M. & Resnick, P.</center>
+output: 
+  html_document:
+    theme: flatly
+    highlight: pygments
 ---
+<br>
+<center><span style="color:#3875d8;font-size:1.5em">*Template 6:*</span>
+
+![](images/generic_2line-cont_chart.png)
+
+<span style="color:#3875d8;font-size:2em">**One continuous & one categorical independent variable (line graph)**</span></center>
+
 
 ##Introduction
-TODO CHANDA: Add heading with bar chart graph, add thumbnails of the charts in the list of templates below.
+Welcome! This template will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. There are a set of templates, each for a different type of analysis. This template is for data with **one continuous and one categorical independent variable** and will produce a **line chart**. If your analysis includes a **linear regression**, this might be the right template for you.
 
-Welcome! This template will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
+This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
 
 This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs plots, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
 
@@ -15,26 +25,23 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 *One independent variable:*
 
-1. Categorical, bar graph (e.g. t-tests, one-way ANOVA)
+1. Categorical; bar graph (e.g. t-tests, one-way ANOVA)
 
-2. Ordinal, line graph (e.g. t-tests, one-way ANOVA)
+2. Ordinal; line graph (e.g. t-tests, one-way ANOVA)
 
-3. Continuous, line graph (e.g. linear regression)
+3. Continuous; line graph (e.g. linear regression)
 
 *Two independent variables:*
 
-4. Two categorical, bar graph (e.g. two-way ANOVA)
+4. Two categorical; bar graph (e.g. two-way ANOVA)
 
-5. Two categorical, line graph (e.g. two-way ANOVA)
+5. One categorical, one ordinal; line graph (e.g. two-way ANOVA)
 
-6. **One categorical, one continuous (e.g. linear regression with multiple lines)**
-
-
-This template is for data with **one continuous and one categorical independent variable** and will produce a **line chart**. If your analysis includes a **linear regression**, this might be the right template for you.
+6. **One categorical, one continuous; line graph (e.g. linear regression with multiple lines)**
 
 Note that this template fits your data to a model that assumes normally distributed error terms. (This is the same assumption underlying t-tests, ANOVA, etc.) This template requires you to have already run diagnostics to determine that your data is consistent with this assumption; if you have not, the results may not be valid. 
 
-Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment \#CHANGE ME within the code chunk itself. You can run each code chunk independently during debugging; when you're finished, you can knit the document to produce the complete document.
+Once you have selected your template, to complete the analysis, please follow along this template. For each code chunk, you may need to make changes to customize the code for your own analysis. In those places, the code chunk will be preceded by a list of things you need to change (with the heading <span style="color:red">"What to change"</span>), and each line that needs to be customized will also include the comment `#CHANGE ME` within the code chunk itself. You can run each code chunk independently during debugging; when you're finished, you can knit the document to produce the complete document.
 
 Good luck!
 
@@ -49,10 +56,12 @@ If this is your first time using the template, you may need to install libraries
 
 ```{r libraries, message=FALSE, warning=FALSE}
 
+knitr::opts_chunk$set(fig.align="center") 
+
 # Cache results of code chunks to speed up repeated knitting
 # This can cause problems in this analysis
 # Only uncomment this if you have read in your dataset, set variables, and set priors 
-# knitr::opts_chunk$set(cache = TRUE) 
+knitr::opts_chunk$set(cache = TRUE) 
 
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
@@ -134,38 +143,40 @@ Finally, our modeling system, `stan_glm()`, will automatically set priors for th
 
 <span style="color:red">**What to change**</span>
 
-6. a_prior: Select the intercept mean.
+7. a_prior: Select the intercept mean.
 
-7. a_sd: Select the intercept standard deviation.
+8. a_sd: Select the intercept standard deviation.
 
-8. b1_prior: Select the slope mean. 
+9. b1_prior: Select the slope mean. 
 
-9. b1_sd: Select the slope standard deviation.
+10. b1_sd: Select the slope standard deviation.
 
-10. You should also change the comments in the code below to explain your choice of priors.
+11. You should also change the comments in the code below to explain your choice of priors.
 
 ```{r}
-#CHANDA TODO FINISH THIS EXPLANATION ONCE DATASET IS FINALIZED
-# CHANGE THESE COMMENTS EXPLAINING YOUR CHOICE OF PRIORS (10)
-# taken from Iyengar & Lepper 2000
-# 6 choices: (M = 6.28, SD = 0.54, n=33); 30 choices: (M = 5.46, SD = 0.82, n=34)
-# We calculate the overall mean for these two choice set sizes:
-prior_mean <- 6.28*(33/67) + 5.46*(34/67) #5.863881
 
-mean_choice_set_size <- (12 + 24 + 40 + 50 + 60 + 72) / 6
-range_choice_set_size <- 72-12
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (11)
+# In our example dataset, y-axis scores can be in the range [1, 7].
+# Thus, a mean value in the control condition of less than 1 or greater
+# than 7 is impossible. With a normal distribution, we can't completely
+# rule out those impossible values, but we choose a mean and sd that assign
+# less than 5% probability to those impossible values.
 
-a_prior <- prior_mean - (-2/range_choice_set_size)*mean_choice_set_size  #CHANGE ME 6
-a_sd <- 2 #CHANGE ME 7
+# We select the mean of the range [1,7], and an sd that assigns a 
+# 95% probability to values that vary up to +3/-3 from this mean.
 
-# CHANGE THESE COMMENTS EXPLAINING YOUR CHOICE OF PRIORS (10)
-# in absence of prior literature, we set priors so that
-# a change from the lowest to highest choice set size
-# results in a -2 change in satisfaction and the mean 
-# satisfaction across all choice set sizes is still 5.86
+a_prior = 4  # CHANGE ME 7
+a_sd = 1.5   # CHANGE ME 8
 
-b1_prior <- -2/range_choice_set_size  #CHANGE ME 8
-b1_sd <- 0.01 #CHANGE ME 9
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (11)
+# In this example, we will say we do not have a strong hypothesis about the effect
+# of choice set size on satisfaction, so we set the mean of the effect size 
+# parameters to be 0. In the absence of other information, we set the sd so that 
+# a change from the minimum choice set size (12) to the maximum choice set size (72)
+# could plausibly result in a +6/-6 change in satisfaction, the maximum possible change.
+
+b1_prior = 0  # CHANGE ME 9
+b1_sd = (6/(72-12))/2   # CHANGE ME 10
 
 ```
 
@@ -322,7 +333,11 @@ animate(graph_plot(p) +
 
 ## Sampling from the prior
 
-We already looked at some sample plots of the priors when we were setting priors; now we want to look at these priors again, but in a HOPs format so we can compare to the posterior plots. To get the prior plots, we can simply ask `stan_glm` to sample from the prior. If you are knitting this document, or if you already ran the code in the "Check priors" section that calculates m_prior, you can comment out this line:
+We already looked at some sample plots of the priors when we were setting priors; now we want to look at these priors again, but in a HOPs format so we can compare to the posterior plots. To get the prior plots, we can simply ask `stan_glm` to sample from the prior. 
+
+<span style="color:red">**What to change**</span>
+
+If you are knitting this document, or if you already ran the code in the "Check priors" section that calculates m_prior, you can comment out this line:
 
 ```{r, results = "hide", message = FALSE, warning = FALSE}
 #m_prior = update(m, prior_PD = TRUE)
