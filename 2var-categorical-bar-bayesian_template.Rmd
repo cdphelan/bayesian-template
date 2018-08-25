@@ -251,11 +251,21 @@ mydata %>%
   data_grid(x1, x2)
 ```
 
-Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent +1/-1 standard deviation. For each x position in the fit grid, we can get the posterior mean estimates and standard deviations from the model:
+Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent 95% credible intervals. For each x position in the fit grid, we can get the posterior mean estimates and 95% credible intervals from the model:
 
 ```{r}
 #TODO CHANDA - THIS IS ALL BROKEN.
 #Come back to this once Matt has looked at the simple bar chart - he might have a solution that will transfer easily to this
+fit = mydata %>% 
+      data_grid(x1, x2) %>%
+      add_fitted_draws(m) %>%
+      mean_qi(.width = .95)
+
+ggplot(fit, aes(x = x1, y = .value, fill = x2, group = x2)) +
+    geom_bar(stat='identity', position='dodge') +
+    geom_errorbar(aes(ymin = .lower, ymax = .upper), position = position_dodge(width = .9), width = .2) +
+    coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits
+    labs(x=x_lab, y=y_lab)
 
 ```
 
