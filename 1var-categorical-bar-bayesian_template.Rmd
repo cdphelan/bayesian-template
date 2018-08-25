@@ -244,9 +244,6 @@ mydata %>%
 Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent a 95% credible interval. For each x position in the fit grid, we can get the posterior mean estimates and 95% credible intervals from the model:
 
 ```{r static_graph}
-
-#TODO Matt(?) - there must be a better way to do this. 
-#this hacky way of doing it doesn't work as a solution for any template that uses the ggplot group aesthetic.
 fit = mydata %>% 
       data_grid(x) %>%
       add_fitted_draws(m) %>%
@@ -257,15 +254,6 @@ ggplot(fit, aes(x = x, y = .value)) +
     geom_errorbar(aes(ymin = .lower, ymax = .upper), width = .2) +
     coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits
     labs(x=x_lab, y=y_lab)
-
-#TODO Matt: this graph should be fit and not mydata, right? 
-#The SDs from the model are much smaller than those from below
-#for the "feel the movement" dataset, the below code produces a result that looks more similar to the published graph
-
-# ggplot(mydata, aes(x = x, y = y)) + 
-#     stat_summary(fun.y = mean, geom = "bar") + 
-#     stat_summary(fun.data = mean_sdl, geom = "errorbar", width=.2)
-
 ```
 
 Even better would be to animate this graph using HOPs (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty as sets of draws from a distribution, which has been demonstrated to improve multivariate probability estimates (Hullman et al. 2015) and increase sensitivity to the underlying trend in data (Kale et al. 2018) over static representations of uncertainty like error bars. 
