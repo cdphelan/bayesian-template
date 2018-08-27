@@ -57,11 +57,6 @@ If this is your first time using the template, you may need to install libraries
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# Cache results of code chunks to speed up repeated knitting
-# This can cause problems in this analysis
-# Only uncomment this if you have read in your dataset, set variables, and set priors 
-knitr::opts_chunk$set(cache = TRUE) 
-
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
@@ -247,12 +242,21 @@ mydata %>%
   data_grid(x1, x2)
 ```
 
-Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent +1/-1 standard deviation. For each x position in the fit grid, we can get the posterior mean estimates and standard deviations from the model:
+Given this fit grid, we can then create any number of visualizations of the results. One way we might want to visualize the results is a static graph with error bars that represent 95% credible intervals. For each x position in the fit grid, we can get the posterior mean estimates and 95% credible intervals from the model:
 
 ```{r}
-#TODO CHANDA - THIS IS ALL BROKEN.
-#Come back to this once Matt has looked at the simple bar chart - he might have a solution that will transfer easily to this
+fit = mydata %>% 
+      data_grid(x1, x2) %>%
+      add_fitted_draws(m) %>%
+      mean_qi(.width = .95)
+
+ggplot(fit, aes(x = x1, y = .value, col = x2, group = x2)) +
+    geom_line() + #do not change
+    geom_errorbar(aes(ymin = .lower, ymax = .upper), width = .2) +
+    coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits
+    labs(x=x_lab, y=y_lab)
 ```
+
 
 Even better would be to animate this graph using HOPs (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty as sets of draws from a distribution, which has been demonstrated to improve multivariate probability estimates (Hullman et al. 2015) and increase sensitivity to the underlying trend in data (Kale et al. 2018) over static representations of uncertainty like error bars. 
 

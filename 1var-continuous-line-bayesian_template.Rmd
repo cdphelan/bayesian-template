@@ -58,11 +58,6 @@ If this is your first time using the template, you may need to install libraries
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# Cache results of code chunks to speed up repeated knitting
-# This can cause problems in this analysis
-# Only uncomment this if you have read in your dataset, set variables, and set priors 
-knitr::opts_chunk$set(cache = TRUE) 
-
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
@@ -232,7 +227,6 @@ mydata %>%
 
 Given this grid, we can then draw samples from the posterior mean evaluated at each x position in the grid using the `add_fitted_draws` function, and then summarize these samples in ggplot using a `stat_lineribbon`:
 
-
 ```{r}
 mydata %>% 
   data_grid(x = seq_range(x, n = 20)) %>%
@@ -271,8 +265,6 @@ You can set the aesthetics of your HOPs plots here.
 In most cases, the default values here should be just fine. If you want to adjust the aesthetics of the animated plots later, you can do so here using the ggplot2 package; just be sure to keep the lines that are commented with "do not change." Below are two optional code customizations that we think may be particularly useful for some datasets.
 
 11. [Optional] coord_cartesian(ylim = ...): You may want to manually set the y-axis limits. If so, uncomment this line in the code below and set your preferred limits accordingly. 
-
-12. [Optional] scale_x_discrete(limits = ...): You may want to manually set the order of the x-axis levels; for example, if you have levels "before" and "after," ggplot defaults often plot "after" on the left and "before" on the right. If so, uncomment this line in the code below and set your preferred level order. The names of the levels must match what is in your dataset. 
 
 ```{r graph_aesthetics}
 

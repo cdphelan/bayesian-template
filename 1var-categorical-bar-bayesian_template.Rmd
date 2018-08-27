@@ -58,11 +58,6 @@ If this is your first time using the template, you may need to install libraries
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# Cache results of code chunks to speed up repeated knitting
-# This can cause problems in this analysis
-# Only uncomment this if you have read in your dataset, set variables, and set priors 
-knitr::opts_chunk$set(cache = TRUE) 
-
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
@@ -276,7 +271,7 @@ In most cases, the default values here should be just fine. If you want to adjus
 # the default code for the plots - if needed, the animated plot aesthetics can be customized here
 graph_plot = function(data) {
   ggplot(data, aes(x = x, y = .value)) + #do not change
-    geom_bar(stat='identity') + #do not change
+    geom_bar(stat='identity', fill = "gray75") + #do not change
     transition_states(.draw, transition_length = 1, state_length = 1) + # gganimate code to animate the plots. Do not change
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #rotates the x-axis text for readability
     coord_cartesian(ylim = c(min(mydata$y, na.rm=T), max(mydata$y, na.rm=T))) + # sets axis limits - CHANGE ME 11 (optional)

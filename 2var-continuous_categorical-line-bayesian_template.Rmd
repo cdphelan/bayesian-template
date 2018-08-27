@@ -58,11 +58,6 @@ If this is your first time using the template, you may need to install libraries
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# Cache results of code chunks to speed up repeated knitting
-# This can cause problems in this analysis
-# Only uncomment this if you have read in your dataset, set variables, and set priors 
-knitr::opts_chunk$set(cache = TRUE) 
-
 # install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
 # devtools::install_github("thomasp85/gganimate")
 
