@@ -19,7 +19,7 @@ Welcome! This template will guide you through a Bayesian analysis in R, even if 
 
 This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
 
-This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs plots, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
+This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
 
@@ -269,10 +269,10 @@ mydata %>%
 
 Even better would be to animate this graph using HOPs (Hypothetical Outcomes Plot), a type of plot that visualizes uncertainty as sets of draws from a distribution, which has been demonstrated to improve multivariate probability estimates (Hullman et al. 2015) and increase sensitivity to the underlying trend in data (Kale et al. 2018) over static representations of uncertainty like error bars. 
 
-To set up the HOPs plots, we will first set the aesthetics for the ggplot that we will use. 
+To set up the HOPs, we will first set the aesthetics for the ggplot that we will use. 
 
 ### Plot aesthetics
-You can set the aesthetics of your HOPs plots here.
+You can set the aesthetics of your HOPs here.
 
 <span style="color:red">**What to change**</span>
 
@@ -294,7 +294,7 @@ graph_plot = function(data) {
 }
 
 # Animation parameters
-n_draws = 100 # the number of draws to visualize in the HOPs plots
+n_draws = 100 # the number of draws to visualize in the HOPs
 frames_per_second = 2.5 # the speed of the HOPs
 # 2.5 frames per second (400ms) is the recommended speed for the HOPs visualization.
 # Faster speeds (100ms) have been demonstrated to not work as well.
