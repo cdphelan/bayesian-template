@@ -19,7 +19,7 @@ Welcome! This template will guide you through a Bayesian analysis in R, even if 
 
 This template assumes you have basic familiarity with R. Once complete, this template will produce a summary of the analysis, complete with parameter estimates and credible intervals, and two animated HOPs (see Hullman, Resnick, Adar 2015 DOI: 10.1371/journal.pone.0142444 and Kale, Nguyen, Kay, and Hullman VIS 2018 for more information) for both your prior and posterior estimates.
 
-This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted [sources for all of this]. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
+This Bayesian analysis focuses on producing results in a form that are easily interpretable, even to nonexperts. The credible intervals produced by Bayesian analysis are the analogue of confidence intervals in traditional null hypothesis significance testing (NHST). A weakness of NHST confidence intervals is that they are easily misinterpreted. Many people naturally interpret an NHST 95% confidence interval to mean that there is a 95% chance that the true parameter value lies somewhere in that interval; in fact, it means that if the experiment were repeated 100 times, 95 of the resulting confidence intervals would include the true parameter value. The Bayesian credible interval sidesteps this complication by providing the intuitive meaning: a 95% chance that the true parameter value lies somewhere in that interval. To further support intuitive interpretations of your results, this template also produces animated HOPs, a type of plot that is more effective than visualizations such as error bars in helping people make accurate judgments about probability distributions.
 
 This set of templates supports a few types of statistical analysis. (In future work, this list of supported statistical analyses will be expanded.) For clarity, each type has been broken out into a separate template, so be sure to select the right template before you start! A productive way to choose which template to use is to think about what type of chart you would like to produce to summarize your data. Currently, the templates support the following:
 
@@ -217,6 +217,8 @@ mydata %>%
 ### Run the model
 There's nothing you have to change here. Just run the model.
 
+In rare cases, you may get a warning that the Markov chains have failed to converge. Chains that fail to converge are a sign that your model is not a good fit to the data. If you get this warning, you should adjust your priors. Your prior distribution may be too narrow, and/or your prior mean is very far from the data.
+
 ```{r results = "hide", message = FALSE, warning = FALSE}
 
 m = stan_glm(y ~ x1*x2, data = mydata,
@@ -228,7 +230,9 @@ m = stan_glm(y ~ x1*x2, data = mydata,
 
 
 ## Model summary
-Here is a summary of the model fit:
+Here is a summary of the model fit.
+
+The summary reports diagnostic values that can help you evaluate whether your model is a good fit for the data. For this template, we can keep diagnostics simple: check that your `Rhat` values are very close to 1.0. Larger values mean that your model is not a good fit for the data. This is usually only a problem if the `Rhat` values are greater than 1.1, which is a warning sign that the Markov chains have failed to converge. In this happens, Stan will warn you about the failure, and you should adjust your priors.
 
 ```{r}
 summary(m, digits=3)
