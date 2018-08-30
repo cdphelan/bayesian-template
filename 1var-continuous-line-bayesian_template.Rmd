@@ -58,7 +58,7 @@ If this is your first time using the template, you may need to install libraries
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# install.packages("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools")
+# install.packages(c("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools"))
 # devtools::install_github("thomasp85/gganimate")
 
 library(rstanarm) #bayesian analysis package
