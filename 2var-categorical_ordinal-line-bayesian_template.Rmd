@@ -51,7 +51,11 @@ This template comes prefilled with an example dataset from Moser et al. (DOI: 10
 
 ##Set up
 ###Libraries
-If this is your first time using the template, you may need to install libraries. Uncomment the lines below - `install.packages()` and `devtools::install_github()` - to install the required packages. This only needs to be done once. 
+If this is your first time using the template, you may need to install libraries. 
+
+If you are using Windows, first you will need to manually install RStan and Rtools. Follow the instructions [here](https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Windows) to install both. 
+
+On both Mac and Windows, uncomment the lines below - `install.packages()` and `devtools::install_github()` - to install the required packages. This only needs to be done once. 
 
 ```{r libraries, message=FALSE, warning=FALSE}
 
