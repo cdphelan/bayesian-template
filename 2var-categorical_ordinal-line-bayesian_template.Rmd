@@ -50,24 +50,41 @@ Good luck!
 This template comes prefilled with an example dataset from Moser et al. (DOI: 10.1145/3025453.3025778), which examines choice overload in the context of e-commerce. The study examined the relationship between choice satisfaction (measured at a 7-point Likert scale), the number of product choices presented on a webpage, and whether the participant is a decision "maximizer" (a person who examines all options and tries to choose the best) or a "satisficer" (a person who selects the first option that is satisfactory). In this template, we analyze the relationship between choice set size, which we treat as an ordinal variable in this template with possible values [12,24,40,50,60,72]; type of decision-making (maximizer or satisficer), a two-level categorical variable; and choice satisfaction, which we treat as a continuous variable with values that can fall in the range [1,7].
 
 ##Set up
+###Requirements
+To run this template, we assume that you are using RStudio, and you have the most recent version of R installed. (This template was built with R version 3.5.1.) 
+
+This template works best if you first open the file `bayesian-template.Rproj` from the code repository as a project in RStudio to get started, and then open the individual `.Rmd` template files after this.
+
 ###Libraries
+<span style="color:red">**Installation:**</span> 
 If this is your first time using the template, you may need to install libraries. 
 
-If you are using Windows, first you will need to manually install RStan and Rtools. Follow the instructions [here](https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Windows) to install both. 
+1.  **If you are using Windows,** first you will need to manually install RStan and Rtools. Follow the instructions [here](https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Windows) to install both. 
 
-On both Mac and Windows, uncomment the lines below - `install.packages()` and `devtools::install_github()` - to install the required packages. This only needs to be done once. 
+2.  On both Mac and Windows, uncomment the lines below - `install.packages()` and `devtools::install_github()` - to install the required packages. This only needs to be done once. 
+
+<span style="color:red">**Troubleshooting:**</span> 
+You may have some trouble installing the packages, especially if you are on Windows. Regardless of OS, if you have any issues installing these packages, try one or more of the following troubleshooting options:
+
+1. Restart R. This is especially important after you install `devtools`, which requires a restart to work properly.
+
+2. Make sure you are running the most recent version of R (3.5.1, as of the writing of this template).
+
+3. Manually install RStan and Rtools, following the instructions [here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started).
+
+4. If you have tried the above and you are still getting error messages like `there is no package called [X]`, try installing the missing package(s) manually using the RStudio interface under Tools > Install Packages...
 
 ```{r libraries, message=FALSE, warning=FALSE}
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# install.packages(c("rstanarm", "tidyverse", "tidybayes", "modelr", "devtools"))
+# install.packages(c("ggplot2", "rstanarm", "tidyverse", "tidybayes", "modelr", "devtools"))
 # devtools::install_github("thomasp85/gganimate")
 
 library(rstanarm) #bayesian analysis package
 library(tidyverse) #tidy datascience commands
 library(tidybayes) #tidy data + ggplot workflow
-library(modelr) #tidy pipelines when modelling
+library(modelr) #tidy pipelines for modeling
 library(ggplot2) #plotting package
 library(gganimate) #animate ggplots
 
