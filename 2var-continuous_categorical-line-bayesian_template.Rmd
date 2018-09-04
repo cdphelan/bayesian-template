@@ -180,6 +180,9 @@ Finally, our modeling system, `stan_glm()`, will automatically set priors for th
 
 # We select the mean of the range [1,7], and an sd that assigns a 
 # 95% probability to values that vary up to +3/-3 from this mean.
+# Remember that in a normal distribution, 95% of the data lies within 2 sds
+# of the mean, so if you want values to vary +3/-3, you should select a sd
+# that is half of that: 1.5.
 
 a_prior = 4  # CHANGE ME 7
 a_sd = 1.5   # CHANGE ME 8
@@ -202,6 +205,12 @@ Next, you'll want to check your priors by running this code chunk. It will produ
 <span style="color:red">**What to change**</span>
 
 Nothing! Just run this code to check your priors, adjusting prior values above as needed until you find reasonable prior values. Note that you may get a couple of very implausible or even impossible values because our assumption of normally distributed priors assigns a small probability to even very extreme values. If you are concerned by the outcome, you can try rerunning it a few more times to make sure that any implausible values you see don't come up very often.
+
+<span style="color:red">**Troubleshooting**</span>
+
+* In rare cases, you may get a warning that the Markov chains have failed to converge. Chains that fail to converge are a sign that your model is not a good fit to the data. If you get this warning, you should adjust your priors. Your prior distribution may be too narrow, and/or your prior mean is very far from the data.
+
+* If you get any other errors, first double-check the values you have changed in the code chunks above (i.e. `mydata`, `mydata$x1`, `mydata$x2`, `mydata$y`, and prior values). Problems with these values can cause confusing errors downstream. 
 
 ```{r check_priors, results="hide"}
 
@@ -231,7 +240,7 @@ mydata %>%
 ### Run the model
 There's nothing you have to change here. Just run the model.
 
-In rare cases, you may get a warning that the Markov chains have failed to converge. Chains that fail to converge are a sign that your model is not a good fit to the data. If you get this warning, you should adjust your priors. Your prior distribution may be too narrow, and/or your prior mean is very far from the data.
+<span style="color:red">**Troubleshooting:**</span> If this code produces errors, check the troubleshooting section under the "Check priors" heading above for a few troubleshooting options. 
 
 ```{r results = "hide", message = FALSE, warning = FALSE}
 m = stan_glm(y ~ x1*x2, data = mydata,
