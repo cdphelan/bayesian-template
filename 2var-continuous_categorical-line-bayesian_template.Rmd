@@ -204,11 +204,13 @@ a_sd = (a_prior_max - a_prior) / 2  # do not change
 # CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (11)
 # In our example dataset, we do not have a strong hypothesis that the treatment 
 # conditions will be higher or lower than the control, so we set the mean of
-# the effect size parameters to be 0. In the absence of other information, we
-# set the sd to be the same as for the control condition.
+# the effect size parameter to be 0. In the absence of other information, we
+# set the sd so that a change from the minimum choice set size (12) 
+# to the maximum choice set size (72) could plausibly result in a 
+# +6/-6 change in satisfaction, the maximum possible change.
 
 b1_prior = 0  # CHANGE ME 9
-b1_sd = a_sd   # CHANGE ME 10
+b1_sd = (6/(72-12))/2   # CHANGE ME 10
 
 ```
 
@@ -251,16 +253,14 @@ First, make sure to uncomment all four variables set in this code chunk.
 
 # CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (11)
 # In this example, we do not have guidance from previous literature
-# to set an exact effect size, but literature does tell us that 
-# satisfaction is likely to decline as choice size increases, so we set
-# an effect size parameter mean so that a change from the minimum 
-# choice set size (12) to the maximum choice set size (72) results in
-# a 2-point decrease in satisfaction. To reflect the uncertainty in 
-# this effect size, we set the sd so that a change from the minimum 
-# to maximum choice set size could plausibly result in a +6/-6 change
+# to set an effect size on satisfaction with an interaction term between
+# choice size and maximizer score, so we set the mean effect size
+# at 0. To reflect the uncertainty in this effect size, we set the sd 
+# so that a change from the minimum choice set size (12) to the maximum
+# choice set size (72) could plausibly result in a +6/-6 change
 # in satisfaction, the maximum possible change.
 
-# b1_prior = -2/(72-12)  # CHANGE ME 9
+# b1_prior = 0 # CHANGE ME 9
 # b1_sd = (6/(72-12))/2   # CHANGE ME 10
 
 ```
