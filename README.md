@@ -34,9 +34,9 @@ Use this template file:
     1var-continuous-line-bayesian_template.Rmd
 
 
-## Two independent variables
+## Interaction of two independent variables
 
-**4) Two categorical**:
+**4) Interaction of two categorical**:
 <img src="images/generic_2bar_chart.png" alt="bar chart" width="80" height="80">
 
 Creates a bar chart; compatible with tests such as two-way ANOVA
@@ -45,7 +45,7 @@ Use this template file:
 
 	2var-categorical-bar-bayesian_template.Rmd
 
-**5) One categorical, one ordinal**:
+**5) Interaction of one categorical, one ordinal**:
 <img src="images/generic_2line_chart.png" alt="line chart" width="80" height="80">
 
 Creates a line graph; compatible with tests such as two-way ANOVA
@@ -54,7 +54,7 @@ Use this template file:
 
 	2var-categorical_ordinal-line-bayesian_template.Rmd
 
-**6) One categorical, one continuous**:
+**6) Interaction of one categorical, one continuous**:
 <img src="images/generic_2line-cont_chart.png" alt="line chart" width="80" height="80">
 
 Creates a line graph; compatible with tests such as linear regressions with multiple lines

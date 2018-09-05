@@ -31,7 +31,7 @@ This set of templates supports a few types of statistical analysis. (In future w
 
 3. Continuous; line graph (e.g. linear regression)
 
-*Two independent variables:*
+*Two interacting independent variables:*
 
 4. Two categorical; bar graph (e.g. two-way ANOVA)
 
@@ -136,24 +136,88 @@ y_lab = "Satisfaction" #CHANGE ME 5
 
 
 ### Set  priors
-In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, before seeing any data, of reasonable values for the model parameters. The model estimation process produces a posterior distribution: beliefs about the plausible values for parameters, given the data in your dataset.
+In this section, you will set priors for your model. Setting priors thoughtfully is important to any Bayesian analysis, especially if you have a small sample of data that you will use for fitting for your model. The priors express your best prior belief, *before seeing any data*, of reasonable values for the model parameters. 
 
-Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimally restrict the model; for example, a weakly informative prior for a parameter that can only have values between 1 and 7 would assign a very small probability to values outside of that range. We have provided an example of how to set priors below.
+Ideally, you will have previous literature from which to draw these prior beliefs. If no previous studies exist, you can instead assign "weakly informative priors" that only minimally restrict the model, excluding only values that are implausible or impossible. We have provided examples of how to set both weak and strong priors below.
 
 To check the plausibility of your priors, use the code section after this one to generate a graph of five sample draws from your priors to check if the values generated are reasonable.
 
 Our model has the following parameters:
+
 a. the overall mean y-value across all levels of categorical variable x
+
 b. the mean y-value for each of the individual levels
+
 c. the standard deviation of the normally distributed error term
 
-To simplify things when there are more than two levels for the x-variable, we limit the number of different prior beliefs you can have for the means at different x-levels. Think of the first level of the categorical variable as specifying the control condition of an experiment, and all of the other levels being treatment conditions in the experiment. We let you specify a prior belief about the plausible values of mean in the control condition, and then we let you set a prior belief about the plausible effect size. You have to specify the same plausible effect sizes for all conditions, unless you dig deeper into our code than the few spots we've told you to change.
+To simplify things, we limit the number of different prior beliefs you can have. Think of the first level of the categorical variable as specifying the control condition of an experiment, and all of the other levels being treatment conditions in the experiment. We let you specify a prior belief about the plausible values of mean in the control condition (a), and then we let you set a prior belief about the plausible effect size (b). You have to specify the same plausible effect sizes for all conditions, unless you dig deeper into our code.
 
 To simplify things further, we only let you specify beliefs about these parameters in the form of a normal distribution. Thus, you will specify what you think is the most likely value for the parameter (the mean), and a standard deviation. You will be expressing a belief that you were 95% certain (before looking at any data) that the true value of the parameter is within two standard deviations of the mean.
 
-Finally, our modeling system, `stan_glm()`, will automatically set priors for the last parameter, the standard deviation of the normally distributed error term for the model overall. That is almost never a model parameter that you will be interpreting, and STAN does a reasonable job of assigning weakly informative priors for that parameter in a way that it won't have an impact on the estimation of other parameters, which we normally do care about.
+Finally, our modeling system, `stan_glm()`, will automatically set priors for the last parameter, the standard deviation of the normally distributed error term for the model overall (c).
 
 <span style="color:red">**What to change**</span>
+
+**If you are using weakly informative priors (i.e. priors not informed by previous literature):**
+
+*Remember: **do not** use any of your data from the current study to inform prior values.*
+
+6. a_prior: Select the control condition mean. 
+
+7. a_prior_max: Select the maximum plausible value of the control condition data. (We will use this to calculate the sd of `a`.)
+
+8. b1_prior: Select the effect size mean. 
+
+9. b1_sd: Select the effect size standard deviation. 
+
+10. You should also change the comments in the code below to explain your choice of priors.
+
+**If you are using strong priors (i.e. priors from previous literature):**
+
+Skip this code chunk and set your priors in the next code chunk. For clarity, comment out everything in this code chunk.
+
+```{r}
+
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
+# In our example dataset, y-axis scores can be in the range [1, 7].
+# In the absence of other information, we set the parameter mean as 4 
+# (the mean of the range [1,7]) and the maximum possible value as 7.
+
+a_prior = 4 # CHANGE ME 6  
+a_prior_max = 7 # CHANGE ME 7
+
+# With a normal distribution, we can't completely rule out
+# impossible values, but we choose an sd that assigns less than
+# 5% probability to those impossible values. Remember that in a normal
+# distribution, 95% of the data lies within 2 sds of the mean. Therefore,
+# we calculate the value of 1 sd by finding the maximum amount our data
+# can vary from the mean (a_prior_max - a_prior) and divide that in half.
+
+a_sd = (a_prior_max - a_prior) / 2  # do not change
+
+# CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
+# In this example, we will say we do not have a strong hypothesis about the effect
+# of choice set size on satisfaction, so we set the mean of the effect size 
+# parameters to be 0. In the absence of other information, we set the sd 
+# to be the same as for the control condition.
+
+b1_prior = 0  # CHANGE ME 8
+b1_sd = a_sd   # CHANGE ME 9
+
+```
+
+
+<span style="color:red">**What to change**</span>
+
+**If you are using weakly informative priors:**
+
+Do not use this code chunk; use the code chunk above to set your priors instead. Make sure everything in this code chunk is commented out so that your priors are not overwritten.
+
+**If you are using strong priors (i.e. priors from previous literature):**
+
+*Remember: **do not** use any of your data from the current study to set prior values.*
+
+First, make sure to uncomment all four variables set in this code chunk.
 
 6. a_prior: Select the control condition mean.
 
@@ -169,28 +233,24 @@ Finally, our modeling system, `stan_glm()`, will automatically set priors for th
 
 # CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
 # In our example dataset, y-axis scores can be in the range [1, 7].
-# Thus, a mean value in the control condition of less than 1 or greater
-# than 7 is impossible. With a normal distribution, we can't completely
-# rule out those impossible values, but we choose a mean and sd that assign
-# less than 5% probability to those impossible values.
+# To choose our priors, we use the results from a previous study 
+# where participants completed an identical task (choosing between 
+# different chocolate bars). For our overall prior mean, we pool the mean
+# satisfaction scores from all conditions in the previous study to get 
+# an overall mean of 5.86. We set a_sd so that 5.86 +/- 2 sds encompasses
+# the 95% confidence intervals from the previous study results.
 
-# We select the mean of the range [1,7], and an sd that assigns a 
-# 95% probability to values that vary up to +3/-3 from this mean.
-# Remember that in a normal distribution, 95% of the data lies within 2 sds
-# of the mean, so if you want values to vary +3/-3, you should select a sd
-# that is half of that: 1.5.
-
-a_prior = 4  # CHANGE ME 6
-a_sd = 1.5   # CHANGE ME 7
+# a_prior = 5.86  # CHANGE ME 6
+# a_sd = 0.6     # CHANGE ME 7
 
 # CHANGE THIS COMMENT EXPLAINING YOUR CHOICE OF PRIORS (10)
-# In our example dataset, we do not have a strong hypothesis that the treatment 
-# conditions will be higher or lower than the control, so we set the mean of
-# the effect size parameters to be 0. In the absence of other information, we
-# set the sd to be the same as for the control condition.
+# In this example, we do not have a strong hypothesis about the effect
+# of choice set size on satisfaction, so we set the mean of the effect size 
+# parameters to be 0. In the absence of other information, we set the sd 
+# to be the same as for the control condition.
 
-b1_prior = 0  # CHANGE ME 8
-b1_sd = 1.5   # CHANGE ME 9
+# b1_prior = 0  # CHANGE ME 8
+# b1_sd = a_sd   # CHANGE ME 9
 
 ```
 
