@@ -192,6 +192,9 @@ Skip this code chunk and set your priors in the next code chunk. For clarity, co
 # In our example dataset, y-axis scores can be in the range [1, 7].
 # In the absence of other information, we set the parameter mean as 4 
 # (the mean of the range [1,7]) and the maximum possible value as 7.
+# From exploratory analysis, we know the mean score and sd for y in our 
+# dataset but we *DO NOT* use this information because priors *CANNOT* 
+# include any information from the current study. 
 
 a_prior = 4 # CHANGE ME 7  
 a_prior_max = 7 # CHANGE ME 8
