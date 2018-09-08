@@ -1,0 +1,51 @@
+---
+title: "Check your understanding of how to set Bayesian priors"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r definition}
+
+question("When you set priors, you're giving your best guess of what the probability distribution of some unknown quantity would be, if you didn't know anything about the data from your current study. What is that unknown quantity?",
+  answer("The parameters of the model", correct = TRUE),
+  answer("The outcome variable"),
+  incorrect = "Incorrect. Priors are the probability distributions of the *parameters*, not the outcome variable. Note though that the two values may be identical if your model has only main effects with dummy variables.",
+  allow_retry = TRUE)
+
+```
+
+
+```{r where}
+
+question("What information can you use when setting priors? (Select all that apply)",
+  answer("Means & sds from related previous studies", correct = TRUE),
+  answer("Approximate means & sds from your current data"),
+  answer("The range of possible values of the dependent variable", correct = TRUE),
+  answer("Results from a previous analysis of your current data"),
+  answer("Effect sizes from previous studies", correct = TRUE),
+  incorrect = "Incorrect. Priors can't include any information that you draw from your current data. Pretend you don't know anything about your data yet!",
+  allow_retry = TRUE)
+
+```
+
+
+```{r letter-a}
+
+question("Say you have conducted an experiment with 2 conditions (control and treatment). Your outcome variable is a continuous variable with a range [0,100]. You have no previous studies to use for your priors, so you are going to set weakly informative priors that just tell the model which values are implausible.nWhat values do you use for the priors?",
+  answer("Control mean: 50 | Control sd: 50 | Effect size mean: 0 | Effect sd: 50"),
+  answer("Control mean: 50 | Control sd: 25 | Effect size mean: 0 | Effect sd: 25", correct = TRUE),
+  answer("Control mean: 0 | Control sd: 50 | Effect size mean: 0 | Effect sd: 50"),
+  answer("Control mean: 50 | Control sd: 25 | Effect size mean: 50 | Effect sd: 25"),
+  incorrect = "Incorrect. Your control mean is the mean of the range (50). In our template, which uses a normal distribution for priors, you want your max value to be 2 sds away from the mean: (100 - 50)/2 = 25. You don't have any info about an effect so you set the effect mean = 0 and the effect sd = control sd (25).",
+  allow_retry = TRUE)
+
+```
+
+
+All done! You can head back to the analysis template.
