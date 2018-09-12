@@ -168,7 +168,7 @@ To simplify things further, we only let you specify beliefs about these paramete
 
 Finally, our modeling system, `stan_glm()`, will automatically set priors for the last parameter, the standard deviation of the normally distributed error term for the model overall (c).
 
-Check your understanding of how to set priors in this 3-question [quizlet](https://cdphelan.shinyapps.io/check_understanding_priors/).
+Want more examples? Check your understanding of how to set priors in this [quizlet](https://cdphelan.shinyapps.io/check_understanding_priors/), which includes several more examples of how to set both strong and weak priors.
 
 <span style="color:red">**What to change**</span>
 
