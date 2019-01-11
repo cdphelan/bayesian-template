@@ -79,8 +79,7 @@ You may have some trouble installing the packages, especially if you are on Wind
 
 knitr::opts_chunk$set(fig.align="center") 
 
-# install.packages(c("ggplot2", "rstanarm", "tidyverse", "tidybayes", "modelr", "devtools"))
-# devtools::install_github("thomasp85/gganimate")
+# install.packages(c("ggplot2", "rstanarm", "tidyverse", "tidybayes", "modelr", "gganimate"))
 
 library(rstanarm) #bayesian analysis package
 library(tidyverse) #tidy datascience commands
