@@ -67,7 +67,7 @@ Use this template file:
     
     2var-continuous_categorical-line-bayesian_template.Rmd
 
-#Getting started
+# Getting started
 
 1) If you do not have RStudio already installed, install it from here: https://www.rstudio.com/products/rstudio/download/#download 
 
