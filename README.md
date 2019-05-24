@@ -1,5 +1,7 @@
 # Bayesian templates for beginners
 
+UPDATE May 2019: A new version of the templates has been released. The structure of the templates has been improved to make it easier to follow along. The ggplot code that sets the plot aesthetics has been moved to the file plotting_functions.R for improved readability of the main templates.
+
 This repo is a set of templates that will guide you through a Bayesian analysis in R, even if you have never done Bayesian analysis before. There are a set of templates, each for a different type of analysis. Over time, we will be adding to this list of templates.
 
 The research paper that accompanies these templates is forthcoming at CHI 2019: "Some Prior(s) Experience Necessary: Templates for Getting Started in Bayesian Analysis." Links will be added once the paper is published.
